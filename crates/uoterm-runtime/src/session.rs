@@ -26,7 +26,7 @@ use crate::scene;
 use crate::teleporters::TeleportMemory;
 use crate::tools::*;
 use parking_lot::RwLock;
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 use std::collections::{HashMap, VecDeque};
 use std::net::Ipv4Addr;
@@ -1685,8 +1685,8 @@ fn login_abort(msg: &Inbound) -> Option<RuntimeError> {
 }
 
 fn opening_seed(opts: &ConnectOptions) -> (u32, Vec<u8>) {
-    let mut rng = rand::thread_rng();
-    let mut seed: u32 = rng.gen();
+    let mut rng = rand::rng();
+    let mut seed: u32 = rng.random();
     if seed == 0 {
         seed = 1;
     }
@@ -1696,7 +1696,7 @@ fn opening_seed(opts: &ConnectOptions) -> (u32, Vec<u8>) {
         encode::seed_ext(seed, opts.version)
     } else {
         while seed.to_be_bytes()[0] == PKT_SEED {
-            seed = rng.gen();
+            seed = rng.random();
         }
         encode::seed(seed)
     };
@@ -9662,7 +9662,7 @@ fn refuse_step(
             if !a_corner_is_shut(inner, at, cell) {
                 remember_refused_tile(inner, cell, now);
             }
-            let resume = rand::thread_rng().gen_range(SHUT_RESUME_MIN_MS..=SHUT_RESUME_MAX_MS);
+            let resume = rand::rng().random_range(SHUT_RESUME_MIN_MS..=SHUT_RESUME_MAX_MS);
             inner.movement.wait(now, Duration::from_millis(resume));
             replan_the_route(inner);
         }
@@ -12892,7 +12892,7 @@ fn spoken_words(
     match speaker {
         Speaker::Agent => {
             let t = speech_allowed(&mut inner.speech, &inner.persona, text, kind, reply)?;
-            Ok(inner.persona.maybe_typo(&t, &mut rand::thread_rng()))
+            Ok(inner.persona.maybe_typo(&t, &mut rand::rng()))
         }
         Speaker::Human => typed_words(text),
     }

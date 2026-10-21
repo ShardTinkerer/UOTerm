@@ -72,13 +72,13 @@ field_style = "Normal"
 
 [sound]
 muted = false
-master_volume = 0.800000011920929
+master_volume = 0.8
 sound_on = true
-sound_volume = 0.800000011920929
+sound_volume = 0.8
 music_on = true
 music_volume = 0.5
 footsteps_on = true
-footsteps_volume = 0.4000000059604645
+footsteps_volume = 0.4
 combat_music = true
 play_in_background = false
 rain_sound = true

@@ -1,6 +1,6 @@
 use crate::error::{Result, RuntimeError};
 use chrono::Timelike;
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::path::Path;
@@ -187,15 +187,15 @@ impl Persona {
         Some(t.to_string())
     }
 
-    pub fn maybe_typo(&self, text: &str, rng: &mut impl Rng) -> String {
-        if self.typo_rate <= 0.0 || !rng.gen_bool(self.typo_rate as f64) {
+    pub fn maybe_typo(&self, text: &str, rng: &mut impl RngExt) -> String {
+        if self.typo_rate <= 0.0 || !rng.random_bool(self.typo_rate as f64) {
             return text.to_string();
         }
         let mut chars: Vec<char> = text.chars().collect();
         if chars.is_empty() {
             return text.to_string();
         }
-        let i = rng.gen_range(0..chars.len());
+        let i = rng.random_range(0..chars.len());
         if let Some((_, to)) = TYPO_NEAR.iter().find(|(a, _)| *a == chars[i]) {
             chars[i] = *to;
         }

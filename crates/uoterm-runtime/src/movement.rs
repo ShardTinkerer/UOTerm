@@ -1,5 +1,5 @@
 use crate::config::{JITTER_PCT, STEP_MOUNT_RUN_MS, STEP_MOUNT_WALK_MS, STEP_RUN_MS, STEP_WALK_MS};
-use rand::Rng;
+use rand::RngExt;
 use std::collections::{HashMap, VecDeque};
 use std::time::{Duration, Instant};
 use uoterm_nav::{pathfind, same_spot, BlockedMove, Obstacles, TileQuery, SAME_MOVE_HEIGHT};
@@ -486,7 +486,7 @@ impl Movement {
         let jitter = (base as u32 * JITTER_PCT) / 100;
         let lo = base.saturating_sub(jitter as u64);
         let hi = base + jitter as u64;
-        Duration::from_millis(rand::thread_rng().gen_range(lo..=hi))
+        Duration::from_millis(rand::rng().random_range(lo..=hi))
     }
 
     /// The pace the game gives one step, with no person's variation in it.

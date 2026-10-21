@@ -29,7 +29,7 @@ indexmap.workspace = true
 hex.workspace = true
 axum.workspace = true
 futures-util.workspace = true
-base64 = "0.22"
+base64.workspace = true
 
 [dev-dependencies]
 # A test may stop the clock and let it jump: a person on a login screen

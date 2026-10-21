@@ -896,7 +896,7 @@ pub(super) fn pick_by_filter(
             if passing.is_empty() {
                 None
             } else {
-                passing.get(rand::thread_rng().gen_range(0..passing.len()))
+                passing.get(rand::rng().random_range(0..passing.len()))
             }
         }
         Selector::Next => match place {
