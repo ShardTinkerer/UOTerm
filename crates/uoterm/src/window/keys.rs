@@ -86,9 +86,9 @@ mod tests {
     #[test]
     fn a_focused_hand_drawn_field_takes_the_keys_and_a_button_does_not() {
         let ctx = egui::Context::default();
-        let chat = Id::new("chat");
-        let field = Id::new("field");
-        let button = Id::new("button");
+        let chat = Id::unique("chat");
+        let field = Id::unique("field");
+        let button = Id::unique("button");
         let focus_on = |id| {
             ctx.memory_mut(|memory| memory.request_focus(id));
             focus(&ctx, chat, true)
@@ -115,11 +115,12 @@ mod tests {
             ..egui::RawInput::default()
         };
         let mut left = Vec::new();
-        let _ = ctx.run(input, |ctx| {
+        ctx.run_pass(input, |ctx| {
             let pressed = presses(ctx);
             take_used(ctx, &[(pressed[0].mods, pressed[0].key.clone())]);
             left = ctx.input(|i| i.events.clone());
-        });
+        })
+        .drop_without_applying_deltas();
         assert!(left.is_empty(), "{left:?}");
     }
 }

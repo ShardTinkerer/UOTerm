@@ -229,7 +229,7 @@ impl PagesUi {
             );
             let response = ui.interact(
                 row,
-                Id::new(("doll-row", item.serial, item.layer)),
+                Id::unique(("doll-row", item.serial, item.layer)),
                 Sense::click_and_drag(),
             );
             let art = Rect::from_min_size(row.min, Vec2::splat(row.height()));
@@ -345,7 +345,7 @@ impl PagesUi {
                 body.left_top() + Vec2::new(0.0, row_index as f32 * MENU_ROW),
                 Vec2::new(body.width(), MENU_ROW - theme::ROW_GAP / 2.0),
             );
-            let response = ui.interact(row, Id::new(("old-menu", entry_index)), Sense::click());
+            let response = ui.interact(row, Id::unique(("old-menu", entry_index)), Sense::click());
             let fill = if live && response.hovered() {
                 theme::BUTTON_HOVER
             } else {
@@ -433,7 +433,7 @@ impl PagesUi {
                 continue;
             };
             if writing {
-                let key = Id::new(("book-page", book.serial, number));
+                let key = Id::unique(("book-page", book.serial, number));
                 page_edit(ui, paper, key, open, number);
             } else {
                 page_words(ui, paper, &page.field);
@@ -519,9 +519,8 @@ fn cover(ui: &mut egui::Ui, row: Rect, draft: &mut BookDraft<String>, writing: b
             .put(
                 area,
                 egui::TextEdit::singleline(words)
-                    .id(Id::new((key, serial)))
-                    .frame(false)
-                    .margin(egui::Margin::symmetric(8, 4))
+                    .id(Id::unique((key, serial)))
+                    .frame(theme::bare_field(egui::Margin::symmetric(8, 4)))
                     .hint_text(hint)
                     .font(text_font(theme::SIZE_BODY))
                     .text_color(theme::TEXT),
@@ -555,10 +554,9 @@ fn page_edit(ui: &mut egui::Ui, paper: Rect, key: Id, open: &mut OpenBook, numbe
         .scope_builder(egui::UiBuilder::new().max_rect(paper), |ui| {
             egui::TextEdit::multiline(&mut words)
                 .id(key)
-                .frame(false)
+                .frame(theme::bare_field(egui::Margin::same(PAGE_MARGIN as i8)))
                 .desired_width(paper.width())
                 .desired_rows(BOOK_LINES)
-                .margin(egui::Margin::same(PAGE_MARGIN as i8))
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT)
                 .show(ui)
@@ -569,10 +567,10 @@ fn page_edit(ui: &mut egui::Ui, paper: Rect, key: Id, open: &mut OpenBook, numbe
     }
     let caret = output
         .cursor_range
-        .map_or(words.chars().count(), |range| range.primary.ccursor.index);
+        .map_or(words.chars().count(), |range| range.primary.index.0);
     let room = page_line_room();
     let fits = |line: &str| {
-        ui.fonts(|fonts| {
+        ui.fonts_mut(|fonts| {
             fonts
                 .layout_no_wrap(line.to_string(), text_font(theme::SIZE_BODY), theme::TEXT)
                 .size()
@@ -637,7 +635,8 @@ impl PagesUi {
                 inner.left_top() + Vec2::new(indent, COVER_ROW + i as f32 * BOARD_ROW),
                 Vec2::new(BOARD_LIST_WIDTH - indent, BOARD_ROW - theme::ROW_GAP / 2.0),
             );
-            let response = ui.interact(row, Id::new(("board-post", post.serial)), Sense::click());
+            let response =
+                ui.interact(row, Id::unique(("board-post", post.serial)), Sense::click());
             let fill = match (board.reading == Some(post.serial), response.hovered()) {
                 (true, _) => theme::BUTTON_HOVER,
                 (false, true) if live => theme::BUTTON_HOVER,
@@ -707,7 +706,7 @@ impl PagesUi {
         ui.put(
             subject_row,
             egui::TextEdit::singleline(&mut self.board.subject)
-                .frame(false)
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_SUBJECT)
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -715,7 +714,7 @@ impl PagesUi {
         ui.put(
             text_box,
             egui::TextEdit::multiline(&mut self.board.text)
-                .frame(false)
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_TEXT)
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),

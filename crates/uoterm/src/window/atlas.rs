@@ -39,5 +39,5 @@ impl Atlas {
 }
 
 fn blank() -> ColorImage {
-    ColorImage::new([ATLAS_SIDE, ATLAS_SIDE], Color32::TRANSPARENT)
+    ColorImage::filled([ATLAS_SIDE, ATLAS_SIDE], Color32::TRANSPARENT)
 }

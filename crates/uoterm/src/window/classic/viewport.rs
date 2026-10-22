@@ -79,7 +79,7 @@ pub fn frame(g: &mut Canvas<'_>, view: Rect, screen: Rect, video: &mut VideoOpti
     for (at, strip) in strips.into_iter().enumerate() {
         let response = g
             .ui()
-            .interact(strip, Id::new((EDGE_KEY, at)), Sense::drag());
+            .interact(strip, Id::unique((EDGE_KEY, at)), Sense::drag());
         moved += response.drag_delta();
         stopped |= response.drag_stopped();
     }
@@ -91,7 +91,7 @@ pub fn frame(g: &mut Canvas<'_>, view: Rect, screen: Rect, video: &mut VideoOpti
     let grip_area = g.area(grip_at.0, grip_at.1, grip);
     let response = g
         .ui()
-        .interact(grip_area, Id::new((EDGE_KEY, "grip")), Sense::drag());
+        .interact(grip_area, Id::unique((EDGE_KEY, "grip")), Sense::drag());
     let art = if response.is_pointer_button_down_on() {
         GRIP.pressed
     } else {

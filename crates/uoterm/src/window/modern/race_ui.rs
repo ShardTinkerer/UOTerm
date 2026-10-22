@@ -161,8 +161,11 @@ impl RaceUi {
                 Pos2::new(area.left(), top + LABEL_ROW),
                 Vec2::new(area.width(), CONTROL_ROW),
             );
-            let response =
-                ui.interact(swatch, Id::new(("race-color", paint as u8)), Sense::click());
+            let response = ui.interact(
+                swatch,
+                Id::unique(("race-color", paint as u8)),
+                Sense::click(),
+            );
             hue_ui::swatch(ui, swatch, self.race.picks.hue(change, paint), tools);
             if self.race.picking == Some(paint) {
                 ui.painter().rect_stroke(
@@ -220,7 +223,7 @@ impl RaceUi {
                     egui::StrokeKind::Inside,
                 );
             }
-            let key = Id::new(("race-hue", paint as u8, at));
+            let key = Id::unique(("race-hue", paint as u8, at));
             if ui.interact(area, key, Sense::click()).clicked() {
                 picked = Some(at);
             }

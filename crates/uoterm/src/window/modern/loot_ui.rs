@@ -101,7 +101,7 @@ impl LootUi {
             if theme::segment_keyed(
                 ui,
                 open_area,
-                Id::new(("loot-open", corpse.serial)),
+                Id::unique(("loot-open", corpse.serial)),
                 WORDS_LOOT_OPEN,
                 theme::TEXT,
             ) {
@@ -111,7 +111,7 @@ impl LootUi {
             if theme::segment_keyed(
                 ui,
                 loot_area,
-                Id::new(("loot-one", corpse.serial)),
+                Id::unique(("loot-one", corpse.serial)),
                 WORDS_LOOT_ONE,
                 theme::GOAL,
             ) {

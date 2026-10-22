@@ -59,7 +59,7 @@ pub fn label(ui: &egui::Ui, words: &str, footer: &str) {
 fn draw(ui: &egui::Ui, mouse: Pos2, lines: &[&str], footer: &str) {
     let painter = ui
         .ctx()
-        .layer_painter(egui::LayerId::new(egui::Order::Tooltip, Id::new("tips")));
+        .layer_painter(egui::LayerId::new(egui::Order::Tooltip, Id::unique("tips")));
     let mut galleys = Vec::new();
     for (i, line) in lines.iter().enumerate() {
         let (font, color) = if i == 0 {
@@ -84,7 +84,7 @@ fn draw(ui: &egui::Ui, mouse: Pos2, lines: &[&str], footer: &str) {
     }
     let width = galleys.iter().map(|(g, _)| g.size().x).fold(0.0, f32::max);
     let height: f32 = galleys.iter().map(|(g, _)| g.size().y + TIP_LINE_GAP).sum();
-    let screen = ui.ctx().screen_rect();
+    let screen = ui.ctx().content_rect();
     let size = Vec2::new(width, height) + TIP_PAD * 2.0;
     let mut corner = mouse + TIP_OFFSET;
     corner.x = corner.x.min(screen.right() - size.x).max(screen.left());

@@ -334,7 +334,7 @@ impl GumpManager {
         };
         match self.shown.iter().find(|gump| gump.id == id) {
             Some(gump) if primary_down && !gump.body_rects.is_empty() => {
-                ctx.set_dragged_id(Id::new((AREA_ID, id)).with((BODY_KEY, 0)));
+                ctx.set_dragged_id(Id::unique((AREA_ID, id)).with((BODY_KEY, 0)));
                 self.pulled = None;
             }
             Some(_) if primary_down => {}
@@ -535,7 +535,7 @@ impl GumpManager {
         let mut closing = Vec::new();
         let mut tip = None;
         let ctx = ui.ctx().clone();
-        egui::Area::new(Id::new(AREA_ID))
+        egui::Area::new(Id::unique(AREA_ID))
             .order(Order::Middle)
             .fixed_pos(screen.min)
             .interactable(false)
@@ -546,7 +546,7 @@ impl GumpManager {
                         continue;
                     }
                     let gump_id = self.shown[at].id;
-                    let egui_id = Id::new((AREA_ID, gump_id));
+                    let egui_id = Id::unique((AREA_ID, gump_id));
                     if self.shown[at].rules.modal {
                         ui.interact(screen, egui_id.with("modal"), Sense::click_and_drag());
                     }
@@ -852,7 +852,7 @@ impl GumpManager {
         corner.y = corner
             .y
             .clamp(screen.top(), (screen.bottom() - size.y).max(screen.top()));
-        let painter = ctx.layer_painter(LayerId::new(Order::Tooltip, Id::new(TIP_LAYER)));
+        let painter = ctx.layer_painter(LayerId::new(Order::Tooltip, Id::unique(TIP_LAYER)));
         let back = Rect::from_min_size(corner - Vec2::new(TIP_PAD, TIP_PAD / 2.0), size);
         let opacity = f32::from(options.background_opacity) / PERCENT_FULL;
         painter.rect_filled(

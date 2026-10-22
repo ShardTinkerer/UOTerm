@@ -68,7 +68,7 @@ const CHAT_BOX: &str = "chat-box";
 
 /// The chat line's id, so the keys know when it has them.
 pub fn chat_id() -> Id {
-    Id::new(CHAT_BOX)
+    Id::unique(CHAT_BOX)
 }
 
 /// Where the other parts of the window are, so this part knows what a
@@ -111,7 +111,7 @@ fn beside(bar: Rect, low: bool, gap: f32) -> (Pos2, Align2) {
 
 /// The click sense of the whole map. Call this before any button is made.
 pub fn map_sense(ui: &egui::Ui, rect: Rect) -> egui::Response {
-    ui.interact(rect, Id::new("control-map"), Sense::click_and_drag())
+    ui.interact(rect, Id::unique("control-map"), Sense::click_and_drag())
 }
 
 /// Where the character is: the numbers in the number face, the words in
@@ -137,7 +137,7 @@ fn location_job(frame: &WatchFrame) -> LayoutJob {
 /// The arrow that folds the bar away and brings it back: it points up when
 /// the bar is open, and down when it is folded. True when it was clicked.
 fn fold_arrow(ui: &egui::Ui, area: Rect, folded: bool) -> bool {
-    let response = ui.interact(area, Id::new("control-fold"), Sense::click());
+    let response = ui.interact(area, Id::unique("control-fold"), Sense::click());
     let color = if response.hovered() {
         theme::TEXT
     } else {
@@ -654,11 +654,10 @@ impl ControlUi {
         let edit = egui::TextEdit::singleline(&mut self.chat_line.text)
             .id(key)
             .lock_focus(true)
-            .frame(false)
+            .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
             .font(text_font(theme::SIZE_BODY))
             .text_color(theme::TEXT)
-            .hint_text(hint)
-            .margin(egui::Margin::symmetric(8, 6));
+            .hint_text(hint);
         let response = ui.put(field, edit);
         let sent = response.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter));
         if !sent {

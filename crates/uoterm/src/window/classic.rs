@@ -288,7 +288,7 @@ impl ClassicUi {
             return false;
         };
         let input = CanvasInput {
-            id: Id::new(VIEWPORT_ID),
+            id: Id::unique(VIEWPORT_ID),
             origin: view.min - Vec2::splat(viewport::BORDER),
             scale: 1.0,
             alpha: 1.0,
@@ -317,7 +317,7 @@ impl ClassicUi {
             return false;
         };
         let canvas_input = CanvasInput {
-            id: Id::new(CHAT_LINE_ID),
+            id: Id::unique(CHAT_LINE_ID),
             origin: view.min,
             scale: 1.0,
             alpha: 1.0,

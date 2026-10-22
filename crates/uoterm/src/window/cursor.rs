@@ -52,7 +52,7 @@ pub fn draw(ctx: &egui::Context, scene: &mut Scene, frame: &WatchFrame, rect: Re
         return;
     };
     ctx.set_cursor_icon(CursorIcon::None);
-    let painter = ctx.layer_painter(LayerId::new(Order::Tooltip, Id::new(CURSOR_LAYER)));
+    let painter = ctx.layer_painter(LayerId::new(Order::Tooltip, Id::unique(CURSOR_LAYER)));
     let area = Rect::from_min_size(
         mouse - bridge::vec2(sprite.anchor),
         Vec2::new(sprite.width, sprite.height),
@@ -78,7 +78,7 @@ pub fn draw_targeting(
     else {
         return;
     };
-    let painter = ctx.layer_painter(LayerId::new(Order::Foreground, Id::new(CURSOR_LAYER)));
+    let painter = ctx.layer_painter(LayerId::new(Order::Foreground, Id::unique(CURSOR_LAYER)));
     if profile.video.aura_on_mouse {
         let color = scene.words_color(aura_hue(frame.target_flags));
         let mut mesh = Mesh::default();

@@ -118,14 +118,14 @@ pub fn draw(
     let place = scene.screen_of(view, [f32::from(x), f32::from(y), f32::from(frame.z)]);
     let corner = held_in(place + corner_offset(facing, size), size, view);
     let rect = Rect::from_min_size(corner, size);
-    egui::Area::new(Id::new(AREA_ID))
+    egui::Area::new(Id::unique(AREA_ID))
         .order(Order::Foreground)
         .fixed_pos(corner)
         .constrain(false)
         .show(ctx, |ui| {
             ui.painter()
                 .image(texture, rect, bridge::rect(sprite.uv), Color32::WHITE);
-            let response = ui.interact(rect, Id::new((AREA_ID, "click")), Sense::click());
+            let response = ui.interact(rect, Id::unique((AREA_ID, "click")), Sense::click());
             let right = response.secondary_clicked();
             if (response.clicked() || right) && frame.human_control {
                 hand.act(Act::QuestArrow { right });

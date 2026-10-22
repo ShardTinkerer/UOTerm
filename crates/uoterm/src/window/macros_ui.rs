@@ -119,8 +119,7 @@ impl MacrosUi {
         ui.put(
             name_row,
             egui::TextEdit::singleline(&mut self.panel.name)
-                .frame(false)
-                .margin(margin)
+                .frame(theme::bare_field(margin))
                 .hint_text(HINT_NAME)
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -128,8 +127,7 @@ impl MacrosUi {
         ui.put(
             lines_box,
             egui::TextEdit::multiline(&mut self.panel.lines)
-                .frame(false)
-                .margin(margin)
+                .frame(theme::bare_field(margin))
                 .hint_text(HINT_LINES)
                 .font(number_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -137,8 +135,7 @@ impl MacrosUi {
         let wish = ui.put(
             wish_field,
             egui::TextEdit::singleline(&mut self.panel.wish)
-                .frame(false)
-                .margin(margin)
+                .frame(theme::bare_field(margin))
                 .hint_text(wish_hint(orders_on))
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -173,7 +170,7 @@ impl MacrosUi {
                 body.left_top() + Vec2::new(0.0, i as f32 * LIST_ROW),
                 Vec2::new(LIST_WIDTH, LIST_ROW - theme::ROW_GAP / 2.0),
             );
-            let response = ui.interact(row, Id::new(("macro-name", name)), Sense::click());
+            let response = ui.interact(row, Id::unique(("macro-name", name)), Sense::click());
             let fill = if *name == self.panel.name || response.hovered() {
                 theme::BUTTON_HOVER
             } else {

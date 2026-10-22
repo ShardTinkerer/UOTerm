@@ -94,7 +94,7 @@ impl SpellsTab {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("spell-book", books[at].serial)),
+                Id::unique(("spell-book", books[at].serial)),
                 &words,
                 color,
             ) {
@@ -179,7 +179,7 @@ impl SpellsTab {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("open-book", book.name)),
+                Id::unique(("open-book", book.name)),
                 book.title,
                 theme::GOAL,
             ) {
@@ -216,7 +216,7 @@ impl SpellsTab {
             );
             let response = ui.interact(
                 row,
-                Id::new(("spell-row", serial, spell.id)),
+                Id::unique(("spell-row", serial, spell.id)),
                 Sense::click_and_drag(),
             );
             let fill = if self.selected == Some(spell.id) {
@@ -398,7 +398,7 @@ impl SpellsTab {
         if theme::segment_keyed(
             ui,
             cast,
-            Id::new(("spell-cast", spell.id)),
+            Id::unique(("spell-cast", spell.id)),
             WORDS_CAST,
             theme::GOAL,
         ) {
@@ -410,7 +410,7 @@ impl SpellsTab {
         theme::segment_keyed(
             ui,
             pin,
-            Id::new(("spell-pin", spell.id)),
+            Id::unique(("spell-pin", spell.id)),
             WORDS_PIN,
             theme::TEXT,
         )

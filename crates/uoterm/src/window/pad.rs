@@ -26,14 +26,16 @@ pub struct Pad {
 
 /// The buttons pressed this frame, as the pad left them for the editor.
 pub fn pressed_this_frame(ctx: &egui::Context) -> Option<PadChord> {
-    ctx.data(|data| data.get_temp::<PadChord>(Id::new(PRESSED_ID)))
+    ctx.data(|data| data.get_temp::<PadChord>(Id::unique(PRESSED_ID)))
 }
 
 /// Leaves the buttons pressed this frame for the editor, or clears them.
 pub fn leave_pressed(ctx: &egui::Context, pressed: Option<PadChord>) {
     ctx.data_mut(|data| match pressed {
-        Some(chord) => data.insert_temp(Id::new(PRESSED_ID), chord),
-        None => data.remove::<PadChord>(Id::new(PRESSED_ID)),
+        Some(chord) => {
+            data.insert_temp(Id::unique(PRESSED_ID), chord);
+        }
+        None => data.remove::<PadChord>(Id::unique(PRESSED_ID)),
     });
 }
 

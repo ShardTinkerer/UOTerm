@@ -188,7 +188,7 @@ impl MapUi {
         if theme::segment_keyed(
             ui,
             view,
-            Id::new("map-view"),
+            Id::unique("map-view"),
             view_words(whole),
             theme::TEXT,
         ) {
@@ -201,17 +201,17 @@ impl MapUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.goto)
-                .id(Id::new("map-goto"))
-                .frame(false)
+                .id(Id::unique("map-goto"))
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_GOTO)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
         );
         let entered = typed.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
         let looked =
-            theme::segment_keyed(ui, go, Id::new("map-go"), WORDS_GO, theme::TEXT) || entered;
+            theme::segment_keyed(ui, go, Id::unique("map-go"), WORDS_GO, theme::TEXT) || entered;
         let walked = frame.human_control
-            && theme::segment_keyed(ui, walk, Id::new("map-walk"), WORDS_WALK, theme::GOAL);
+            && theme::segment_keyed(ui, walk, Id::unique("map-walk"), WORDS_WALK, theme::GOAL);
         if looked || walked {
             match goto_place(&self.goto) {
                 Ok((x, y)) => {
@@ -240,7 +240,7 @@ impl MapUi {
         let mut pressed = None;
         for (at, button) in MAP_BUTTONS.into_iter().enumerate() {
             let area = from_right(row, &mut right, WIDE_BUTTON_WIDTH);
-            let key = Id::new(("map-marker-button", at));
+            let key = Id::unique(("map-marker-button", at));
             if theme::segment_keyed(ui, area, key, button.words(), theme::TEXT) {
                 pressed = Some(button);
             }
@@ -269,7 +269,7 @@ impl MapUi {
         profile: &mut Profile,
     ) {
         let whole = profile.world_map.whole_world;
-        let response = ui.interact(field, Id::new("world-map"), Sense::click_and_drag());
+        let response = ui.interact(field, Id::unique("world-map"), Sense::click_and_drag());
         let notches = map_view::wheel_notches(ui, &response);
         let lay = if whole {
             self.wheel += notches;

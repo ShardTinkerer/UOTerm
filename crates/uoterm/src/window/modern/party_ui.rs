@@ -59,7 +59,7 @@ fn invite_band(ui: &egui::Ui, row: Rect, frame: &WatchFrame, tools: &Tools<'_>, 
     if theme::segment_keyed(
         ui,
         accept,
-        Id::new(("party-accept", leader)),
+        Id::unique(("party-accept", leader)),
         WORDS_ACCEPT,
         theme::GOAL,
     ) {
@@ -68,7 +68,7 @@ fn invite_band(ui: &egui::Ui, row: Rect, frame: &WatchFrame, tools: &Tools<'_>, 
     if theme::segment_keyed(
         ui,
         decline,
-        Id::new(("party-decline", leader)),
+        Id::unique(("party-decline", leader)),
         WORDS_DECLINE,
         theme::ALARM,
     ) {
@@ -112,7 +112,7 @@ pub fn invite_panel(
         if theme::segment_keyed(
             ui,
             accept,
-            Id::new("invite-panel-accept"),
+            Id::unique("invite-panel-accept"),
             WORDS_ACCEPT,
             theme::GOAL,
         ) {
@@ -121,7 +121,7 @@ pub fn invite_panel(
         if theme::segment_keyed(
             ui,
             decline,
-            Id::new("invite-panel-decline"),
+            Id::unique("invite-panel-decline"),
             WORDS_DECLINE,
             theme::ALARM,
         ) {
@@ -205,7 +205,7 @@ impl PartyTab {
             } else {
                 WORDS_LOOT_OFF
             };
-            if theme::segment_keyed(ui, loot, Id::new("party-loot"), words, theme::TEXT) {
+            if theme::segment_keyed(ui, loot, Id::unique("party-loot"), words, theme::TEXT) {
                 tools.hand.act(Act::PartyLoot(!frame.party_can_loot));
             }
             let leave = Rect::from_min_size(
@@ -215,7 +215,7 @@ impl PartyTab {
             if theme::segment_keyed(
                 ui,
                 leave,
-                Id::new("party-leave"),
+                Id::unique("party-leave"),
                 leave_words(frame),
                 theme::ALARM,
             ) {
@@ -232,7 +232,7 @@ impl PartyTab {
                 Pos2::new(right - ADD_WIDTH, row.top()),
                 Vec2::new(ADD_WIDTH, height),
             );
-            if theme::segment_keyed(ui, add, Id::new("party-add"), WORDS_ADD, theme::GOAL) {
+            if theme::segment_keyed(ui, add, Id::unique("party-add"), WORDS_ADD, theme::GOAL) {
                 tools.hand.act(Act::Command(INVITE_COMMAND.into()));
             }
         }
@@ -304,7 +304,7 @@ impl PartyTab {
             Pos2::new(row.left() + NUMBER_WIDTH, row.top()),
             Pos2::new(tell.left() - theme::ROW_GAP, row.bottom() - TAB_GAP / 2.0),
         );
-        let response = ui.interact(name, Id::new(("party", member.serial)), Sense::click());
+        let response = ui.interact(name, Id::unique(("party", member.serial)), Sense::click());
         ui.painter().text(
             row.left_center(),
             Align2::LEFT_CENTER,
@@ -358,7 +358,7 @@ impl PartyTab {
             && theme::segment_keyed(
                 ui,
                 tell,
-                Id::new(("party-tell", member.serial)),
+                Id::unique(("party-tell", member.serial)),
                 WORDS_TELL,
                 theme::TEXT,
             )
@@ -374,7 +374,7 @@ impl PartyTab {
             && theme::segment_keyed(
                 ui,
                 kick,
-                Id::new(("party-kick", member.serial)),
+                Id::unique(("party-kick", member.serial)),
                 WORDS_KICK,
                 theme::ALARM,
             )
@@ -406,9 +406,8 @@ impl PartyTab {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.words)
-                .id(Id::new("party-words"))
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 4))
+                .id(Id::unique("party-words"))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 4)))
                 .hint_text(hint)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
@@ -417,7 +416,8 @@ impl PartyTab {
             Pos2::new(field.right() + theme::ROW_GAP, row.top()),
             row.max,
         );
-        let pressed = theme::segment_keyed(ui, say, Id::new("party-say"), WORDS_SAY, theme::GOAL);
+        let pressed =
+            theme::segment_keyed(ui, say, Id::unique("party-say"), WORDS_SAY, theme::GOAL);
         let entered = typed.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter));
         if pressed || entered {
             if let Some(said) = party_say(&self.words, self.tell_to, speech) {
@@ -448,7 +448,7 @@ fn near_row(ui: &egui::Ui, row: Rect, serial: u32, frame: &WatchFrame, tools: &T
         && theme::segment_keyed(
             ui,
             invite,
-            Id::new(("party-invite", serial)),
+            Id::unique(("party-invite", serial)),
             WORDS_INVITE,
             theme::GOAL,
         )

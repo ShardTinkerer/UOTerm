@@ -6,6 +6,7 @@
 use super::actions::GumpOp;
 use super::control::{Act, Hand};
 use super::desk::Desk;
+use super::map_view;
 use super::model::clicks::ClickDelay;
 use super::model::compare::ItemLayers;
 use super::model::places;
@@ -81,14 +82,12 @@ pub struct BoxesUi {
 
 /// How far the mouse wheel turned over the panel in this frame.
 pub(super) fn wheel_over(ui: &egui::Ui, panel: Rect) -> f32 {
-    ui.input(|i| {
-        let over = i.pointer.hover_pos().is_some_and(|p| panel.contains(p));
-        if over {
-            i.raw_scroll_delta.y
-        } else {
-            0.0
-        }
-    })
+    let over = ui.input(|i| i.pointer.hover_pos().is_some_and(|p| panel.contains(p)));
+    if over {
+        map_view::wheel_points(ui)
+    } else {
+        0.0
+    }
 }
 
 /// The first row after the mouse wheel turned over the panel.
@@ -274,7 +273,7 @@ impl BoxesUi {
             let area = row(&mut y);
             let response = ui.interact(
                 area,
-                Id::new(("gump-box", gump.gump, choice.switch)),
+                Id::unique(("gump-box", gump.gump, choice.switch)),
                 Sense::click(),
             );
             let tick = Rect::from_center_size(
@@ -324,7 +323,7 @@ impl BoxesUi {
                 ui.put(
                     field,
                     egui::TextEdit::singleline(words)
-                        .frame(false)
+                        .frame(theme::bare_field(theme::FIELD_MARGIN))
                         .char_limit(limit)
                         .font(text_font(theme::SIZE_BODY))
                         .text_color(theme::TEXT),
@@ -335,7 +334,7 @@ impl BoxesUi {
             let area = row(&mut y).shrink2(Vec2::new(0.0, 2.0));
             let response = ui.interact(
                 area,
-                Id::new((
+                Id::unique((
                     "gump-button",
                     gump.gump,
                     button.id,

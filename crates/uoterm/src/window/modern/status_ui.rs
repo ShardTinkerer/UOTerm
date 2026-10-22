@@ -48,7 +48,7 @@ pub fn stat_row(
         Vec2::splat(LOCK_SIDE),
     );
     let live = frame.human_control;
-    let response = ui.interact(lock, Id::new(("stat-lock", stat)), Sense::click());
+    let response = ui.interact(lock, Id::unique(("stat-lock", stat)), Sense::click());
     let color = if live && response.hovered() {
         theme::TEXT
     } else {

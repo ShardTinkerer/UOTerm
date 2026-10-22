@@ -47,7 +47,7 @@ pub fn draw(
                 body.left_top() + Vec2::new(at as f32 * (width + theme::ROW_GAP), 0.0),
                 Vec2::new(width, BUTTON_ROW - theme::ROW_GAP),
             );
-            if theme::segment_keyed(ui, area, Id::new(("dps", at)), words, theme::TEXT) {
+            if theme::segment_keyed(ui, area, Id::unique(("dps", at)), words, theme::TEXT) {
                 tools.hand.act(act);
                 tools.readings.refresh(TOOL_DAMAGE_METER);
             }

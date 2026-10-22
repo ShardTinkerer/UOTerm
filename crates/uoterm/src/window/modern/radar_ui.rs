@@ -86,7 +86,7 @@ impl RadarUi {
         tools: &mut Tools<'_>,
         profile: &mut Profile,
     ) {
-        let response = ui.interact(field, Id::new("radar-field"), Sense::click());
+        let response = ui.interact(field, Id::unique("radar-field"), Sense::click());
         let notches = map_view::wheel_notches(ui, &response);
         if notches != 0.0 {
             self.zoom = map_view::zoomed(self.zoom, notches, ZOOM_MAX);

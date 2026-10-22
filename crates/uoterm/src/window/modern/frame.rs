@@ -236,7 +236,7 @@ pub fn foldable_controls(
 ) -> Option<FrameEvent> {
     let folded = places::is_folded(profile, spec.id);
     let area = mark_area(rect, marks(spec));
-    let response = ui.interact(area, Id::new(("panel-fold", spec.id)), Sense::click());
+    let response = ui.interact(area, Id::unique(("panel-fold", spec.id)), Sense::click());
     fold_mark(ui.painter(), area, folded, mark_color(response.hovered()));
     if response.hovered() {
         super::super::tips::label(ui, HINT_FOLD, "");
@@ -267,7 +267,7 @@ pub fn controls_leaving(
     if spec.closable {
         let area = mark_area(rect, next);
         next += 1;
-        let response = ui.interact(area, Id::new(("panel-close", spec.id)), Sense::click());
+        let response = ui.interact(area, Id::unique(("panel-close", spec.id)), Sense::click());
         close_mark(painter, area, mark_color(response.hovered()));
         if response.hovered() {
             super::super::tips::label(ui, HINT_CLOSE, "");
@@ -277,7 +277,7 @@ pub fn controls_leaving(
         }
     }
     let area = mark_area(rect, next);
-    let response = ui.interact(area, Id::new(("panel-lock", spec.id)), Sense::click());
+    let response = ui.interact(area, Id::unique(("panel-lock", spec.id)), Sense::click());
     lock_mark(
         painter,
         area,
@@ -303,7 +303,7 @@ pub fn controls_leaving(
     );
     let mover = ui.interact(
         title,
-        Id::new(("panel-move", spec.id)),
+        Id::unique(("panel-move", spec.id)),
         Sense::click_and_drag(),
     );
     if mover.double_clicked() {
@@ -328,7 +328,7 @@ pub fn controls_leaving(
                 Stroke::new(MARK_STROKE, theme::TEXT_FAINT),
             );
         }
-        let sizer = ui.interact(grip, Id::new(("panel-size", spec.id)), Sense::drag());
+        let sizer = ui.interact(grip, Id::unique(("panel-size", spec.id)), Sense::drag());
         if sizer.dragged() {
             let size = (rect.size() + sizer.drag_delta()).max(min);
             let sized_area = bridge::area(Rect::from_min_size(rect.min, size));

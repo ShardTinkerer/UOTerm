@@ -44,7 +44,7 @@ pub fn draw(
             body.left_top() + Vec2::new(at as f32 * (ICON + ICON_GAP), 0.0),
             Vec2::splat(ICON),
         );
-        let response = ui.interact(icon, Id::new(("buff", buff.icon)), Sense::hover());
+        let response = ui.interact(icon, Id::unique(("buff", buff.icon)), Sense::hover());
         let picture = buffs::gump_of(buff.icon).and_then(|gump| tools.scene.gump_picture(gump, 0));
         let painter = ui.painter();
         painter.rect_filled(icon, CornerRadius::same(CELL_RADIUS), theme::TRACK);

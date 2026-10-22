@@ -13,7 +13,7 @@ const ARROW_CLICK_ID: &str = "modern-quest-arrow";
 /// takes clicks in, so the map does not take them.
 pub fn click(ui: &egui::Ui, arrow: Rect, frame: &WatchFrame, hand: &Hand) -> Rect {
     let area = bridge::rect(arrow_click_area(bridge::area(arrow)));
-    let response = ui.interact(area, Id::new(ARROW_CLICK_ID), Sense::click());
+    let response = ui.interact(area, Id::unique(ARROW_CLICK_ID), Sense::click());
     if !frame.human_control {
         return area;
     }

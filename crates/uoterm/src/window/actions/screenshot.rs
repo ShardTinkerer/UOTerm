@@ -3,10 +3,11 @@
 //! `screenshots` folder of the config folder. The file name and the words
 //! are `uoterm_view::actions::screenshot`.
 
-use eframe::egui::{self, Event, UserData, ViewportCommand};
+use eframe::egui::{self, ColorImage};
 use std::fs::File;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex, PoisonError};
 use uoterm_runtime::config::config_dir;
 use uoterm_view::actions::screenshot::file_name;
 
@@ -16,14 +17,46 @@ const FILE_TIME: &str = "%Y-%m-%d_%H-%M-%S%.3f";
 const SAME_MOMENT_MAX: u32 = 1000;
 const NUMBER_SEPARATOR: char = '_';
 
-/// Marks the pictures the player asked for, so the window's own
-/// snapshot does not take them.
-struct PlayerScreenshot;
+/// A picture of the window, asked for in one frame. The window gives it
+/// in a later frame.
+#[derive(Default)]
+pub struct Picture {
+    /// Where the picture lands; set from the time it is asked for.
+    landing: Option<Arc<Mutex<Option<Arc<ColorImage>>>>>,
+}
+
+impl Picture {
+    /// Asks the window for a picture of itself, and wakes the window when
+    /// it comes.
+    pub fn ask(&mut self, ctx: &egui::Context) {
+        let landing = Arc::new(Mutex::new(None));
+        let shared = Arc::clone(&landing);
+        let waker = ctx.clone();
+        ctx.request_screenshot(move |image| {
+            *shared.lock().unwrap_or_else(PoisonError::into_inner) = Some(image);
+            waker.request_repaint();
+        });
+        self.landing = Some(landing);
+    }
+
+    /// True from the first `ask`.
+    pub fn asked(&self) -> bool {
+        self.landing.is_some()
+    }
+
+    /// The picture, once, when it came.
+    pub fn take(&mut self) -> Option<Arc<ColorImage>> {
+        self.landing
+            .as_ref()?
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take()
+    }
+}
 
 #[derive(Default)]
 pub struct Screenshots {
-    /// A picture was asked for and has not come yet.
-    asked: bool,
+    picture: Picture,
 }
 
 /// The folder of the screenshots in the config folder `config`.
@@ -64,30 +97,12 @@ fn create_numbered(folder: &Path, stamp: &str) -> std::io::Result<(PathBuf, File
 impl Screenshots {
     /// Asks the window for a picture of itself. It comes in a later frame.
     pub fn ask(&mut self, ctx: &egui::Context) {
-        self.asked = true;
-        ctx.send_viewport_cmd(ViewportCommand::Screenshot(UserData::new(PlayerScreenshot)));
+        self.picture.ask(ctx);
     }
 
     /// Saves the picture when it came. Gives where it went, or why not.
-    pub fn take(&mut self, ctx: &egui::Context) -> Option<Result<PathBuf, String>> {
-        if !self.asked {
-            return None;
-        }
-        let image = ctx.input(|input| {
-            input.events.iter().find_map(|event| match event {
-                Event::Screenshot {
-                    image, user_data, ..
-                } if user_data
-                    .data
-                    .as_ref()
-                    .is_some_and(|data| data.is::<PlayerScreenshot>()) =>
-                {
-                    Some(std::sync::Arc::clone(image))
-                }
-                _ => None,
-            })
-        })?;
-        self.asked = false;
+    pub fn take(&mut self) -> Option<Result<PathBuf, String>> {
+        let image = self.picture.take()?;
         let folder = screenshots_dir(&config_dir());
         let saved = std::fs::create_dir_all(&folder)
             .and_then(|()| create_new_file(&folder))

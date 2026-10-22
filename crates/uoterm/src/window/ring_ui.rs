@@ -119,7 +119,7 @@ impl RingUi {
             };
             let galley = painter.layout_no_wrap(words, text_font(theme::SIZE_BODY), color);
             let area = Rect::from_center_size(point, galley.size() + LINE_PAD * 2.0);
-            let response = ui.interact(area, Id::new(("ring-line", i)), Sense::click());
+            let response = ui.interact(area, Id::unique(("ring-line", i)), Sense::click());
             let fill = if enabled && response.hovered() {
                 theme::BUTTON_HOVER
             } else {

@@ -6,8 +6,7 @@
 
 use super::canvas::{Canvas, CanvasInput};
 use super::text::TextLook;
-use eframe::egui::{self, Color32, Id, Order, Pos2, Rect, Vec2};
-use std::hash::Hash;
+use eframe::egui::{self, AsIdSalt, Color32, Id, Order, Pos2, Rect, Vec2};
 
 /// The menu opens this far right of the pointer and this far above it.
 const OPEN_OFFSET: Vec2 = Vec2::new(5.0, -20.0);
@@ -116,19 +115,19 @@ impl ContextMenu {
     pub fn show(
         &mut self,
         g: &mut Canvas<'_>,
-        key: impl Hash,
+        key: impl AsIdSalt,
         scale: f32,
         lines: &[MenuLine],
     ) -> Option<Vec<usize>> {
         let pointer = self.pointer?;
         let ctx = g.ctx().clone();
-        let id = Id::new(("classic-context-menu", key));
+        let id = Id::unique(("classic-context-menu", key));
         let widths = measure(g, lines);
         let size = Vec2::new(
             list_width(&widths) as f32,
             (lines.len() as i32 * LINE_HEIGHT) as f32,
         ) * scale;
-        let origin = open_place(pointer, size, ctx.screen_rect());
+        let origin = open_place(pointer, size, ctx.content_rect());
         let input = CanvasInput {
             id,
             origin,

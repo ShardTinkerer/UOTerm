@@ -51,7 +51,7 @@ fn words_panel(
     let placed = frame::place(rect, &spec, profile);
     let body = frame::draw(ui.painter(), placed, title);
     ui.painter().galley(body.min, galley, color);
-    let response = ui.interact(body, Id::new(("stats-body", id)), Sense::click());
+    let response = ui.interact(body, Id::unique(("stats-body", id)), Sense::click());
     if response.hovered() {
         super::super::tips::label(ui, HINT_MORE, "");
     }

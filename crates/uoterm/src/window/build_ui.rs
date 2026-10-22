@@ -232,7 +232,7 @@ impl BuildUi {
                 list.left_top() + Vec2::new(0.0, i as f32 * LIST_ROW),
                 Vec2::new(list.width(), LIST_ROW - theme::ROW_GAP / 2.0),
             );
-            let response = ui.interact(row, Id::new(("house-style", at)), Sense::click());
+            let response = ui.interact(row, Id::unique(("house-style", at)), Sense::click());
             let fill = if at == picked || response.hovered() {
                 theme::BUTTON_HOVER
             } else {
@@ -273,7 +273,7 @@ impl BuildUi {
             if cell.right() > row.right() {
                 break;
             }
-            let response = ui.interact(cell, Id::new(("house-piece", i)), Sense::click());
+            let response = ui.interact(cell, Id::unique(("house-piece", i)), Sense::click());
             let fill = if i == piece || response.hovered() {
                 theme::BUTTON_HOVER
             } else {
@@ -303,8 +303,7 @@ impl BuildUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.wish)
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .hint_text(if tools.hand.orders_on {
                     HINT_WISH
                 } else {
@@ -724,7 +723,7 @@ impl ChatUi {
                 area.left_top() + Vec2::new(0.0, row_at as f32 * CHANNEL_ROW),
                 Vec2::new(area.width(), CHANNEL_ROW),
             );
-            let response = ui.interact(row, Id::new(("chat-channel", at)), Sense::click());
+            let response = ui.interact(row, Id::unique(("chat-channel", at)), Sense::click());
             let picked = self.panel.picked.as_deref() == Some(name.as_str());
             if picked || (live && response.hovered()) {
                 ui.painter()
@@ -816,10 +815,9 @@ impl ChatUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(words)
-                .id(Id::new("chat-small-box"))
+                .id(Id::unique("chat-small-box"))
                 .password(asking.hides_words())
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
         );
@@ -869,10 +867,9 @@ impl ChatUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.name)
-                .id(Id::new("chat-name"))
+                .id(Id::unique("chat-name"))
                 .char_limit(CHAT_NAME_MAX_CHARS)
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
         );
@@ -930,8 +927,7 @@ impl ChatUi {
         let typed = ui.put(
             row,
             egui::TextEdit::singleline(&mut self.words)
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .hint_text(HINT_SAY)
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -955,8 +951,7 @@ impl ChatUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.wish)
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .hint_text(if tools.hand.orders_on {
                     HINT_CHANNEL
                 } else {

@@ -72,6 +72,15 @@ const TITLE_FACE_BYTES: &[u8] = include_bytes!("../../assets/fonts/BarlowCondens
 const TEXT_SHADOW_OFFSET: egui::Vec2 = egui::vec2(1.0, 1.0);
 
 /// Grey and criminal share one grey, as in the game.
+/// The space around the words of a typing field with no frame of its own.
+pub const FIELD_MARGIN: egui::Margin = egui::Margin::symmetric(4, 2);
+
+/// No frame for a typing field that sits on art the window draws, only
+/// `margin` around its words.
+pub fn bare_field(margin: impl Into<egui::Margin>) -> egui::Frame {
+    egui::Frame::NONE.inner_margin(margin)
+}
+
 pub fn notoriety_color(notoriety: u8) -> Color32 {
     bridge::color(shared::notoriety_color(notoriety))
 }
@@ -164,7 +173,11 @@ pub fn button(ui: &egui::Ui, left_top: egui::Pos2, words: &str, color: Color32) 
     let painter = ui.painter();
     let galley = painter.layout_no_wrap(words.to_string(), text_font(SIZE_BODY), color);
     let rect = Rect::from_min_size(left_top, galley.size() + BUTTON_PAD * 2.0);
-    let response = ui.interact(rect, egui::Id::new(("button", words)), egui::Sense::click());
+    let response = ui.interact(
+        rect,
+        egui::Id::unique(("button", words)),
+        egui::Sense::click(),
+    );
     let fill = if response.hovered() {
         BUTTON_HOVER
     } else {
@@ -178,7 +191,7 @@ pub fn button(ui: &egui::Ui, left_top: egui::Pos2, words: &str, color: Color32) 
 /// One button that fills `area`, with its words in the middle. A row of
 /// these with equal areas is one tidy strip. True when it was clicked.
 pub fn segment(ui: &egui::Ui, area: Rect, words: &str, color: Color32) -> bool {
-    segment_keyed(ui, area, egui::Id::new(("segment", words)), words, color)
+    segment_keyed(ui, area, egui::Id::unique(("segment", words)), words, color)
 }
 
 /// A segment whose words are not its own alone, such as the "+" of each row

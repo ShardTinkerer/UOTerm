@@ -76,7 +76,7 @@ fn button_pair(
     for (at, words) in words.into_iter().enumerate() {
         let area = first.translate(Vec2::new(at as f32 * (BUTTON_WIDTH + TAB_GAP), 0.0));
         let color = if at == 0 { theme::GOAL } else { theme::TEXT };
-        if theme::segment_keyed(ui, area, Id::new((key, at)), words, color) {
+        if theme::segment_keyed(ui, area, Id::unique((key, at)), words, color) {
             pressed = Some(at);
         }
     }
@@ -165,7 +165,7 @@ fn slot_card(
     let toggle = || tools.hand.act(slot_act(frame, slot));
     let response = ui.interact(
         cell,
-        Id::new(("ability-slot", slot.serial())),
+        Id::unique(("ability-slot", slot.serial())),
         Sense::click_and_drag(),
     );
     if response.hovered() && !response.dragged() {
@@ -229,7 +229,7 @@ fn every_ability(
         }
         let response = ui.interact(
             row,
-            Id::new(("every-ability", ability.ability)),
+            Id::unique(("every-ability", ability.ability)),
             Sense::hover(),
         );
         if response.hovered() {
@@ -323,7 +323,7 @@ fn race_rows(
         ) else {
             continue;
         };
-        let response = ui.interact(cell, Id::new(("racial", gump)), Sense::click_and_drag());
+        let response = ui.interact(cell, Id::unique(("racial", gump)), Sense::click_and_drag());
         if response.hovered() && !response.dragged() {
             super::super::tips::label(ui, name, HINT_FLIGHT);
         }

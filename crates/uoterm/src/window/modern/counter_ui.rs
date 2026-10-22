@@ -63,7 +63,7 @@ impl CounterUi {
                 body.left_top() + Vec2::new(column as f32, row as f32) * (side + CELL_GAP),
                 Vec2::splat(side),
             );
-            let response = ui.interact(cell, Id::new(("counter", index)), Sense::click());
+            let response = ui.interact(cell, Id::unique(("counter", index)), Sense::click());
             ui.painter()
                 .rect_filled(cell, CornerRadius::same(CELL_RADIUS), theme::TRACK);
             if response.hovered() && !options.read_only {
@@ -161,7 +161,7 @@ fn fixed_switch(ui: &egui::Ui, panel: Rect, spec: &PanelSpec<'_>, profile: &mut 
     let area = Rect::from_min_max(left.min, right.max);
     let fixed = profile.counters.read_only;
     let color = bridge::color(fixed_color(fixed));
-    let response = ui.interact(area, Id::new("counters-fixed"), Sense::click());
+    let response = ui.interact(area, Id::unique("counters-fixed"), Sense::click());
     ui.painter().text(
         area.center(),
         Align2::CENTER_CENTER,

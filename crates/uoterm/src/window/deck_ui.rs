@@ -193,7 +193,7 @@ pub(super) fn row_buttons(
         right -= width + TAB_GAP;
         let response = ui.interact(
             area,
-            Id::new(("row-button", key, width as u32)),
+            Id::unique(("row-button", key, width as u32)),
             Sense::click(),
         );
         let fill = if response.hovered() {
@@ -484,7 +484,7 @@ impl DeckUi {
             } else {
                 theme::TEXT_DIM
             };
-            if theme::segment_keyed(ui, area, Id::new(("sheet-view", at)), words, color) {
+            if theme::segment_keyed(ui, area, Id::unique(("sheet-view", at)), words, color) {
                 self.view = view;
             }
         }
@@ -498,7 +498,7 @@ impl DeckUi {
             );
             let open = places::is_open(profile, id);
             let color = if open { theme::GOAL } else { theme::TEXT_DIM };
-            if theme::segment_keyed(ui, area, Id::new(("sheet-panel", at)), words, color) {
+            if theme::segment_keyed(ui, area, Id::unique(("sheet-panel", at)), words, color) {
                 places::set_open(profile, id, !open);
                 tools.keep_profile(profile);
             }
@@ -709,7 +709,7 @@ impl DeckUi {
         }
         let response = ui.interact(
             row,
-            Id::new(("worn-row", item.serial, item.layer)),
+            Id::unique(("worn-row", item.serial, item.layer)),
             Sense::click_and_drag(),
         );
         ui.painter().text(
@@ -745,7 +745,7 @@ impl DeckUi {
         if theme::segment_keyed(
             ui,
             cross,
-            Id::new(("take-off", item.layer)),
+            Id::unique(("take-off", item.layer)),
             WORDS_TAKE_OFF,
             theme::ALARM,
         ) {
@@ -825,8 +825,7 @@ impl DeckUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.wear_wish)
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 4))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 4)))
                 .hint_text(hint)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
@@ -908,7 +907,7 @@ impl DeckUi {
         let panel = frame::place(rect, &spec, profile);
         let body = frame::draw(ui.painter(), panel, WORDS_HOTBAR);
         let bar = Rect::from_min_size(body.left_top(), Vec2::new(width, side));
-        let keyed = if ui.ctx().wants_keyboard_input() {
+        let keyed = if ui.ctx().egui_wants_keyboard_input() {
             Vec::new()
         } else {
             hotbar_slots_pressed(&keys::presses(ui.ctx()))
@@ -921,7 +920,7 @@ impl DeckUi {
             );
             cells.push(cell);
             tools.desk.zone(bridge::area(cell), Zone::Slot(slot));
-            let response = ui.interact(cell, Id::new(("hotbar", slot)), Sense::click());
+            let response = ui.interact(cell, Id::unique(("hotbar", slot)), Sense::click());
             let fill = if response.hovered() || self.picking == Some(slot) {
                 theme::BUTTON_HOVER
             } else {
@@ -997,7 +996,7 @@ impl DeckUi {
         if down {
             let painter = ui.ctx().layer_painter(egui::LayerId::new(
                 egui::Order::Tooltip,
-                Id::new("hotbar-carry"),
+                Id::unique("hotbar-carry"),
             ));
             let area = Rect::from_center_size(mouse, Vec2::splat(CARRY_SIDE));
             match slot_picture(&what, frame, tools) {
@@ -1079,7 +1078,7 @@ impl DeckUi {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("slot-choice", at)),
+                Id::unique(("slot-choice", at)),
                 &choice.words(frame),
                 theme::TEXT,
             ) {

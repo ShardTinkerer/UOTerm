@@ -809,7 +809,7 @@ fn form_stage(flow: &mut LoginFlow, ui: &mut egui::Ui, body: Rect, ctx: &egui::C
             .password(secret)
             .hint_text(if secret { HINT_PASSWORD_ENV } else { "" });
         if secret {
-            edit = edit.id(Id::new(PASSWORD_ID));
+            edit = edit.id(Id::unique(PASSWORD_ID));
         }
         let response = ui.put(field, edit);
         if secret && std::mem::take(&mut flow.focus_password) {
@@ -961,8 +961,7 @@ fn save_question(
 /// A one-line field with no frame, in the words of the form.
 fn plain_edit(value: &mut String, margin: egui::Margin) -> egui::TextEdit<'_> {
     egui::TextEdit::singleline(value)
-        .frame(false)
-        .margin(margin)
+        .frame(theme::bare_field(margin))
         .font(text_font(theme::SIZE_BODY))
         .text_color(theme::TEXT)
 }
@@ -1020,7 +1019,7 @@ fn saved_row(
     chosen: bool,
     asked: bool,
 ) -> Option<SavedAct> {
-    let response = ui.interact(row, Id::new(("saved-login", place)), Sense::click());
+    let response = ui.interact(row, Id::unique(("saved-login", place)), Sense::click());
     let fill = if chosen || response.hovered() {
         theme::BUTTON_HOVER
     } else {
@@ -1072,7 +1071,7 @@ fn saved_row(
             ),
             SMALL_BUTTON,
         );
-        let key = Id::new(("saved-login-button", place, *words));
+        let key = Id::unique(("saved-login-button", place, *words));
         if theme::segment_keyed(ui, button, key, words, *color) {
             act = Some(*asks);
         }
@@ -1088,7 +1087,7 @@ fn list_row(
     words: &str,
     chosen: bool,
 ) -> bool {
-    let response = ui.interact(row, Id::new(key), Sense::click());
+    let response = ui.interact(row, Id::unique(key), Sense::click());
     let fill = if chosen || response.hovered() {
         theme::BUTTON_HOVER
     } else {
@@ -1428,12 +1427,12 @@ mod tests {
                 screen_rect: Some(screen),
                 ..egui::RawInput::default()
             };
-            let output = ctx.run(input, |ctx| {
-                egui::CentralPanel::default().show(ctx, |ui| {
+            let mut output = ctx.run_ui(input, |root| {
+                egui::CentralPanel::default().show(root, |ui| {
                     assert!(login.draw(ui, screen).is_none());
                 });
             });
-            canvas.take(&output.textures_delta);
+            canvas.take(&mut output.textures_delta);
             last = Some(output);
         }
         last.expect("at least one frame")

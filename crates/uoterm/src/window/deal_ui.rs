@@ -229,7 +229,7 @@ impl DealUi {
     ) {
         let live = frame.human_control;
         let serial = good.item.serial;
-        let response = ui.interact(row, Id::new(("shop-good", serial)), Sense::click());
+        let response = ui.interact(row, Id::unique(("shop-good", serial)), Sense::click());
         if live && response.hovered() {
             ui.painter()
                 .rect_filled(row, CornerRadius::same(CELL_RADIUS), theme::BUTTON);
@@ -300,7 +300,7 @@ impl DealUi {
             take_good(&mut self.cart, good, all);
         }
         for (area, words, up) in [(minus, STEP_DOWN, false), (plus, STEP_UP, true)] {
-            let key = Id::new(("shop-step", serial, up));
+            let key = Id::unique(("shop-step", serial, up));
             if theme::segment_keyed(ui, area, key, words, theme::TEXT) {
                 let next = stepped(count, up, all, good.item.amount);
                 self.cart.set(serial, next);
@@ -431,7 +431,7 @@ fn traded_cell(
 ) {
     let response = ui.interact(
         cell,
-        Id::new(("trade-item", item.serial)),
+        Id::unique(("trade-item", item.serial)),
         Sense::click_and_drag(),
     );
     item_art(ui, cell, item, tools, true);
@@ -498,9 +498,8 @@ fn offer_fields(
             ui.put(
                 field,
                 egui::TextEdit::singleline(&mut typed)
-                    .id(Id::new(("trade-offer", trade.mine, platinum)))
-                    .frame(false)
-                    .margin(egui::Margin::symmetric(8, 4))
+                    .id(Id::unique(("trade-offer", trade.mine, platinum)))
+                    .frame(theme::bare_field(egui::Margin::symmetric(8, 4)))
                     .font(number_font(theme::SIZE_BODY))
                     .text_color(theme::TEXT),
             )

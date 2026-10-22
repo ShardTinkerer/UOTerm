@@ -137,7 +137,7 @@ pub fn place_once(
     if !*placed {
         *placed = true;
         let shown = g.area(0, 0, size).size();
-        let screen = g.ctx().screen_rect();
+        let screen = g.ctx().content_rect();
         g.move_to(place(screen, shown));
     }
 }

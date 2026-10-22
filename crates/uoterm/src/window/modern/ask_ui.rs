@@ -52,11 +52,17 @@ pub fn draw(
     let yes = theme::segment_keyed(
         ui,
         yes_area,
-        Id::new("question-yes"),
+        Id::unique("question-yes"),
         WORDS_YES,
         theme::GOAL,
     );
-    let no = theme::segment_keyed(ui, no_area, Id::new("question-no"), WORDS_NO, theme::TEXT);
+    let no = theme::segment_keyed(
+        ui,
+        no_area,
+        Id::unique("question-no"),
+        WORDS_NO,
+        theme::TEXT,
+    );
     let escaped = ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, Key::Escape));
     let closed = frame::controls(ui, panel, &spec, profile, tools) == Some(FrameEvent::Closed);
     let answer = if yes {

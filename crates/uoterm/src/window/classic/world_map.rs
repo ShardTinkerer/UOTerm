@@ -531,7 +531,7 @@ impl WorldMap {
             let rect = g.area(x, y, Vec2::new(w as f32, h as f32));
             let response = g.ui().interact(
                 rect,
-                Id::new(("classic-world-map-field", cx.me)),
+                Id::unique(("classic-world-map-field", cx.me)),
                 Sense::click_and_drag(),
             );
             if response.drag_started() {

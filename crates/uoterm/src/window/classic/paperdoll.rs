@@ -434,7 +434,7 @@ impl Paperdoll {
             item_tooltip(g, cx, &pack_item(item));
             let response = g.ui().interact(
                 rect,
-                Id::new(("paperdoll-item", self.serial, item.serial)),
+                Id::unique(("paperdoll-item", self.serial, item.serial)),
                 Sense::click_and_drag(),
             );
             if response.is_pointer_button_down_on() {

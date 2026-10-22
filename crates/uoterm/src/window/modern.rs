@@ -325,7 +325,7 @@ impl ModernUi {
             );
             let shows = launch.shows(profile);
             let color = if shows { theme::GOAL } else { theme::TEXT_DIM };
-            if theme::segment_keyed(ui, button, Id::new(("launch", at)), words, color) {
+            if theme::segment_keyed(ui, button, Id::unique(("launch", at)), words, color) {
                 launch.set(profile, !shows);
                 changed = true;
             }

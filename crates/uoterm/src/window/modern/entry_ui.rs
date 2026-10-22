@@ -103,7 +103,7 @@ impl EntryUi {
     fn field(&mut self, ui: &mut egui::Ui, area: Rect, dialog: &AskedDialog, live: bool) -> bool {
         ui.painter()
             .rect_filled(area, CornerRadius::same(CELL_RADIUS), theme::TRACK);
-        let id = Id::new(FIELD_ID);
+        let id = Id::unique(FIELD_ID);
         let hint = entry_hint(dialog);
         let mut words = self.field.words.clone();
         let response = ui
@@ -112,9 +112,8 @@ impl EntryUi {
                     area,
                     egui::TextEdit::singleline(&mut words)
                         .id(id)
-                        .frame(false)
+                        .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                         .hint_text(hint)
-                        .margin(egui::Margin::symmetric(8, 6))
                         .font(text_font(theme::SIZE_BODY))
                         .text_color(theme::TEXT),
                 )

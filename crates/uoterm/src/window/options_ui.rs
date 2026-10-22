@@ -308,14 +308,14 @@ impl OptionsUi {
         let okay = theme::segment_keyed(
             ui,
             okay_area,
-            Id::new("picker-okay"),
+            Id::unique("picker-okay"),
             WORDS_OKAY,
             theme::GOAL,
         );
         let cancel = theme::segment_keyed(
             ui,
             cancel_area,
-            Id::new("picker-cancel"),
+            Id::unique("picker-cancel"),
             WORDS_CANCEL,
             theme::TEXT,
         );
@@ -342,7 +342,7 @@ impl OptionsUi {
                 Pos2::new(left_top.x, y),
                 Vec2::new(PAGE_LIST_WIDTH, PAGE_ROW - theme::ROW_GAP),
             );
-            if theme::segment_keyed(ui, area, Id::new(("options-page", index)), words, color) {
+            if theme::segment_keyed(ui, area, Id::unique(("options-page", index)), words, color) {
                 self.panel.choose_page(page);
             }
             y += PAGE_ROW;
@@ -426,7 +426,7 @@ impl OptionsUi {
             }
             (OptionKind::Choice { labels }, OptionValue::Choice(index)) => {
                 ui.horizontal(|ui| {
-                    let id = Id::new(("options-choice", self.panel.page.index(), row.label));
+                    let id = Id::unique(("options-choice", self.panel.page.index(), row.label));
                     let chosen = choice_box(ui, id, labels, index);
                     ui.label(row.label);
                     (chosen != index).then_some(OptionValue::Choice(chosen))
@@ -796,7 +796,7 @@ fn foot_buttons(ui: &egui::Ui, left_top: Pos2, changed: bool) -> Option<Foot> {
     for (foot, words, width) in FOOT {
         let area = Rect::from_min_size(Pos2::new(x, left_top.y), Vec2::new(width, FOOT_ROW));
         let color = bridge::color(foot_color(foot, changed));
-        if theme::segment_keyed(ui, area, Id::new(("options-foot", words)), words, color) {
+        if theme::segment_keyed(ui, area, Id::unique(("options-foot", words)), words, color) {
             pressed = Some(foot);
         }
         if foot == Foot::Default && ui.rect_contains_pointer(area) {
@@ -823,7 +823,7 @@ fn info_bar_items(
             let index = item.data.index();
             let chosen = choice_box(
                 ui,
-                Id::new(("options-info-bar", at)),
+                Id::unique(("options-info-bar", at)),
                 InfoBarData::LABELS,
                 index,
             );
@@ -901,7 +901,7 @@ fn cooldown_rules(
                     let index = rule.source.index();
                     let chosen = choice_box(
                         ui,
-                        Id::new(("options-cooldown", at)),
+                        Id::unique(("options-cooldown", at)),
                         CooldownSource::LABELS,
                         index,
                     );

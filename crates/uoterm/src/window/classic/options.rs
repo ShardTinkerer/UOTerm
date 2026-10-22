@@ -20,7 +20,7 @@ use crate::window::settings::{
     rows_on, Choice, InfoBarData, InfoBarItem, JournalKind, JournalTab, KeyBinding, OptionKind,
     OptionRow, OptionValue, Page, Profile,
 };
-use eframe::egui::{Color32, Pos2, Vec2};
+use eframe::egui::{AsIdSalt, Color32, Pos2, Vec2};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use uoterm_view::ui::options::{
@@ -753,7 +753,7 @@ impl Options {
 /// fields. True when the words changed.
 pub(super) fn input(
     g: &mut Canvas<'_>,
-    key: impl std::hash::Hash,
+    key: impl AsIdSalt,
     x: i32,
     y: i32,
     w: i32,

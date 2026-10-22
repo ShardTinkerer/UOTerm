@@ -15,6 +15,7 @@ use super::text::TextLook;
 use super::text_field::TextField;
 use crate::view::{WatchChat, WatchFrame};
 use crate::window::control::Act;
+use crate::window::map_view;
 use crate::window::model::chat::{
     chat_door, chat_name_act, joining, lines_back, Asking, ChatDoor, Joining, CHAT_NAME_MAX_CHARS,
     WORDS_CHOOSE_NAME,
@@ -276,7 +277,7 @@ impl ChatGump {
         self.seen = count;
         let most_back = count.saturating_sub(1);
         if g.hovered(x, y, w, h) {
-            let wheel = g.ui().input(|i| i.raw_scroll_delta.y);
+            let wheel = map_view::wheel_points(g.ui());
             if wheel > 0.0 {
                 self.back = (self.back + 1).min(most_back);
             } else if wheel < 0.0 {

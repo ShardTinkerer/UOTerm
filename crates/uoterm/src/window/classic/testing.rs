@@ -58,11 +58,12 @@ pub fn draw_canvas(
     };
     let ctx = egui::Context::default();
     for events in frames {
-        let _ = ctx.run(frame_input(events), |ctx| {
+        ctx.run_ui(frame_input(events), |root| {
+            let ctx = &root.ctx().clone();
             scene.make_atlas(ctx);
-            egui::CentralPanel::default().show(ctx, |ui| {
+            egui::CentralPanel::default().show(root, |ui| {
                 let input = CanvasInput {
-                    id: egui::Id::new(TEST_CANVAS_ID),
+                    id: egui::Id::unique(TEST_CANVAS_ID),
                     origin: Pos2::ZERO,
                     scale: 1.0,
                     alpha: 1.0,
@@ -76,7 +77,8 @@ pub fn draw_canvas(
                 let mut g = Canvas::new(ui, &mut scene, &mut text, input);
                 draw(&mut g, ctx);
             });
-        });
+        })
+        .drop_without_applying_deltas();
     }
     true
 }
@@ -156,9 +158,10 @@ fn draw_in(
             screen_rect: Some(screen),
             ..frame_input(events)
         };
-        let _ = ctx.run(input, |ctx| {
+        ctx.run_ui(input, |root| {
+            let ctx = &root.ctx().clone();
             scene.make_atlas(ctx);
-            egui::CentralPanel::default().show(ctx, |ui| {
+            egui::CentralPanel::default().show(root, |ui| {
                 manager.draw(
                     ui,
                     screen,
@@ -178,7 +181,8 @@ fn draw_in(
                     },
                 );
             });
-        });
+        })
+        .drop_without_applying_deltas();
     }
     true
 }

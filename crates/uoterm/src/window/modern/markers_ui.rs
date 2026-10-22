@@ -125,7 +125,13 @@ impl MarkersUi {
                 } else {
                     theme::TEXT_DIM
                 };
-                if theme::segment_keyed(ui, area, Id::new(("marker-file", at)), &file.name, color) {
+                if theme::segment_keyed(
+                    ui,
+                    area,
+                    Id::unique(("marker-file", at)),
+                    &file.name,
+                    color,
+                ) {
                     self.file = at;
                     self.scroll = 0.0;
                 }
@@ -140,8 +146,8 @@ impl MarkersUi {
         let typed = ui.put(
             search,
             egui::TextEdit::singleline(&mut self.search)
-                .id(Id::new("marker-search"))
-                .frame(false)
+                .id(Id::unique("marker-search"))
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_SEARCH)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),

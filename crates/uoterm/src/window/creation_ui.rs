@@ -235,7 +235,7 @@ fn choice(ui: &egui::Ui, area: Rect, key: Id, words: &str, picked: bool, faint: 
 /// A large button of the bottom row. The main one is filled with the goal
 /// color. True when it was clicked while it is enabled.
 fn big_button(ui: &egui::Ui, area: Rect, words: &str, main: bool, enabled: bool) -> bool {
-    let response = ui.interact(area, Id::new(("creation-button", words)), Sense::click());
+    let response = ui.interact(area, Id::unique(("creation-button", words)), Sense::click());
     let hovered = response.hovered() && enabled;
     let (fill, color) = match (main && enabled, hovered) {
         (true, false) => (theme::GOAL, theme::VOID),
@@ -265,8 +265,8 @@ pub fn draw(
     mut art: Art<'_>,
 ) -> Option<Asked> {
     // A list that is open takes Enter and Esc for itself.
-    let popup_open = ui.memory(|memory| memory.any_popup_open());
-    let typing = ui.ctx().wants_keyboard_input();
+    let popup_open = egui::Popup::is_any_open(ui.ctx());
+    let typing = ui.ctx().egui_wants_keyboard_input();
     let frame = frame(window);
     ui.painter()
         .rect_filled(window, CornerRadius::ZERO, theme::VOID);
@@ -522,7 +522,7 @@ fn look_page(ui: &egui::Ui, area: Rect, creation: &mut Creation, scene: Option<&
     let mut left = area.left();
     for (female, words) in [(false, WORDS_MALE), (true, WORDS_FEMALE)] {
         let spot = Rect::from_min_size(Pos2::new(left, row_top), Vec2::new(SEX_WIDTH, CHOICE_ROW));
-        let key = Id::new(("creation-sex", female));
+        let key = Id::unique(("creation-sex", female));
         if choice(ui, spot, key, words, creation.female == female, false) {
             creation.set_female(female);
         }
@@ -533,7 +533,7 @@ fn look_page(ui: &egui::Ui, area: Rect, creation: &mut Creation, scene: Option<&
         let allowed = creation.race_allowed(race);
         let words = race_words(race, allowed);
         let spot = Rect::from_min_size(Pos2::new(left, row_top), Vec2::new(RACE_WIDTH, CHOICE_ROW));
-        let key = Id::new(("creation-race", race.words()));
+        let key = Id::unique(("creation-race", race.words()));
         if choice(ui, spot, key, &words, creation.race == race, !allowed) {
             creation.set_race(race);
         }
@@ -588,7 +588,7 @@ fn style_chips(
             ),
             Vec2::new(width, CHIP_ROW),
         );
-        let key = Id::new(("creation-style", words, at));
+        let key = Id::unique(("creation-style", words, at));
         if choice(ui, spot, key, style.words, *picked == at, false) {
             *picked = at;
         }
@@ -657,7 +657,7 @@ fn color_grids(ui: &egui::Ui, area: Rect, creation: &mut Creation, scene: Option
         };
         label(ui, Pos2::new(left, top), paint_words(paint, creation.race));
         let origin = Pos2::new(left, top + LABEL_ROW);
-        let key = Id::new(("creation-colors", paint_words(paint, creation.race)));
+        let key = Id::unique(("creation-colors", paint_words(paint, creation.race)));
         let color = |hue: u16| scene.map_or(theme::BUTTON, |scene| scene.words_color(hue));
         let picked = creation.color_place(paint);
         if let Some(at) = palette_grid(ui, origin, cell, key, &palette, color, picked) {
@@ -782,7 +782,7 @@ fn card(
         .profession
         .as_ref()
         .is_some_and(|known| known.true_name == profession.true_name);
-    let key = Id::new(("creation-profession", &profession.true_name));
+    let key = Id::unique(("creation-profession", &profession.true_name));
     let about = profession_about(profession, files);
     let mut response = ui.interact(spot, key, Sense::click());
     if !about.is_empty() {
@@ -1002,7 +1002,7 @@ fn trade_page(ui: &mut egui::Ui, area: Rect, creation: &mut Creation, files: &Cr
         if let Some(value) = points(
             ui,
             control,
-            Id::new(("creation-stat", at)),
+            Id::unique(("creation-stat", at)),
             creation.stats[at],
             STAT_RANGE,
         ) {
@@ -1043,7 +1043,7 @@ fn trade_page(ui: &mut egui::Ui, area: Rect, creation: &mut Creation, files: &Cr
         );
         skill_picker(ui, picker, at, creation, &menu);
         let control = Rect::from_min_max(Pos2::new(picker.right() + GAP, row.top()), row.max);
-        let key = Id::new(("creation-skill-points", at));
+        let key = Id::unique(("creation-skill-points", at));
         if let Some(value) = points(ui, control, key, creation.skills[at].value, SKILL_RANGE) {
             creation.set_skill_value(at, value);
         }
@@ -1067,7 +1067,7 @@ fn skill_picker(
     creation: &mut Creation,
     menu: &[(u8, String)],
 ) {
-    let key = Id::new(("creation-skill", row));
+    let key = Id::unique(("creation-skill", row));
     let shown = creation.skill_row_name(menu, row);
     let response = ui.interact(area, key, Sense::click());
     let fill = if response.hovered() {
@@ -1098,17 +1098,12 @@ fn skill_picker(
         color,
     );
     let popup = key.with("list");
-    if response.clicked() {
-        ui.memory_mut(|memory| memory.toggle_popup(popup));
-    }
     let search_key = key.with("search");
     let mut chosen = None;
-    egui::popup_below_widget(
-        ui,
-        popup,
-        &response,
-        egui::PopupCloseBehavior::CloseOnClickOutside,
-        |ui| {
+    egui::Popup::from_toggle_button_response(&response)
+        .id(popup)
+        .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
+        .show(|ui| {
             ui.set_min_width(area.width().max(PICKER_LIST_WIDTH));
             let mut search =
                 ui.data_mut(|data| data.get_temp::<String>(search_key).unwrap_or_default());
@@ -1124,19 +1119,18 @@ fn skill_picker(
                 .max_height(PICKER_LIST_HEIGHT)
                 .show(ui, |ui| {
                     for choice in creation.skill_choices(menu, row, &search) {
-                        let item = egui::SelectableLabel::new(choice.picked, choice.words);
+                        let item = egui::Button::selectable(choice.picked, choice.words);
                         if ui.add_enabled(!choice.taken, item).clicked() {
                             chosen = Some(choice.skill);
                         }
                     }
                 });
             ui.data_mut(|data| data.insert_temp(search_key, search));
-        },
-    );
+        });
     if let Some(skill) = chosen {
         creation.set_skill(row, skill);
         ui.data_mut(|data| data.remove::<String>(search_key));
-        ui.memory_mut(|memory| memory.close_popup());
+        egui::Popup::close_id(ui.ctx(), popup);
     }
 }
 
@@ -1321,9 +1315,8 @@ fn name_page(
     ui.painter()
         .rect_filled(field, CornerRadius::same(RADIUS), theme::TRACK);
     let edit = egui::TextEdit::singleline(&mut creation.name)
-        .id(Id::new("creation-name"))
-        .frame(false)
-        .margin(NAME_MARGIN)
+        .id(Id::unique("creation-name"))
+        .frame(theme::bare_field(NAME_MARGIN))
         .hint_text(WORDS_NAME_HINT)
         .font(text_font(theme::SIZE_TITLE))
         .text_color(theme::TEXT);
@@ -1438,7 +1431,7 @@ fn summary_swatches(ui: &egui::Ui, at: Pos2, creation: &Creation, scene: Option<
             Stroke::new(LINE_WIDTH / HALF, theme::VOID),
             StrokeKind::Inside,
         );
-        let key = Id::new(("creation-summary-color", paint_words(paint, creation.race)));
+        let key = Id::unique(("creation-summary-color", paint_words(paint, creation.race)));
         ui.interact(spot, key, Sense::hover())
             .on_hover_text(paint_words(paint, creation.race));
         left = spot.right() + GAP;
@@ -1498,11 +1491,12 @@ mod tests {
                     max_texture_side: Some(ART_TEXTURE_SIDE),
                     ..egui::RawInput::default()
                 };
-                let output = self.ctx.run(input, |ctx| {
+                let mut output = self.ctx.run_ui(input, |root| {
+                    let ctx = &root.ctx().clone();
                     if let Some(scene) = scene.as_deref_mut() {
                         scene.make_atlas(ctx);
                     }
-                    egui::CentralPanel::default().show(ctx, |ui| {
+                    egui::CentralPanel::default().show(root, |ui| {
                         let art = Art {
                             scene: scene.as_deref_mut(),
                             town_map: &mut self.town_map,
@@ -1510,7 +1504,7 @@ mod tests {
                         asked.push(draw(ui, window, creation, files, art));
                     });
                 });
-                self.canvas.take(&output.textures_delta);
+                self.canvas.take(&mut output.textures_delta);
                 last = Some(output);
             }
             (asked, last.expect("at least one frame"))

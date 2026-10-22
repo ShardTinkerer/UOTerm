@@ -29,10 +29,36 @@ const WHOLE_UV: Rect = Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0));
 /// The notches the wheel turned over a field this frame: up is positive.
 pub fn wheel_notches(ui: &egui::Ui, response: &egui::Response) -> f32 {
     if response.hovered() {
-        ui.input(|input| input.raw_scroll_delta.y) / PANEL_WHEEL_POINTS
+        wheel_points(ui) / PANEL_WHEEL_POINTS
     } else {
         0.0
     }
+}
+
+/// The points the mouse wheel turned this frame, up positive, before any
+/// smoothing. With Shift held the wheel turns sideways, so it counts none.
+pub fn wheel_points(ui: &egui::Ui) -> f32 {
+    let line = ui.ctx().options(|o| o.input_options.line_scroll_speed);
+    ui.input(|input| {
+        let page = input.content_rect().height();
+        input
+            .events
+            .iter()
+            .map(|event| match event {
+                egui::Event::MouseWheel {
+                    unit,
+                    delta,
+                    modifiers,
+                    ..
+                } if !modifiers.shift => match unit {
+                    egui::MouseWheelUnit::Point => delta.y,
+                    egui::MouseWheelUnit::Line => line * delta.y,
+                    egui::MouseWheelUnit::Page => page * delta.y,
+                },
+                _ => 0.0,
+            })
+            .sum()
+    })
 }
 
 /// Draws a texture over the tiles from `from` to `to`, laid by `lay`.
@@ -107,10 +133,10 @@ impl MapPictures {
             self.near = None;
             return false;
         };
-        let image = ColorImage {
-            size: [SPAN, SPAN],
-            pixels: pixels.into_iter().map(bridge::color).collect(),
-        };
+        let image = ColorImage::new(
+            [SPAN, SPAN],
+            pixels.into_iter().map(bridge::color).collect(),
+        );
         self.near = Some(NearPicture {
             map,
             middle,
@@ -142,7 +168,7 @@ impl MapPictures {
             self.world = Some(WorldPicture {
                 map,
                 step: world_step(map),
-                image: ColorImage::new([columns, rows], bridge::color(UNKNOWN_LAND)),
+                image: ColorImage::filled([columns, rows], bridge::color(UNKNOWN_LAND)),
                 next_row: 0,
                 texture: None,
             });

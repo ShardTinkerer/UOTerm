@@ -106,15 +106,17 @@ impl Controls {
             .shared
             .take_pad(self.pad.poll(profile, raw.predicted_dt));
         pad::leave_pressed(ctx, pad.pressed);
-        let last = ctx.input(|input| input.pointer.latest_pos());
-        let room = raw.screen_rect.unwrap_or_else(|| ctx.screen_rect());
+        let (last, modifiers) = ctx.input(|input| (input.pointer.latest_pos(), input.modifiers));
+        let room = raw.screen_rect.unwrap_or_else(|| ctx.content_rect());
         let moved = pad::moved_pointer(last.map(bridge::point), pad.pointer, bridge::area(room))
             .map(bridge::pos2);
         if let Some(moved) = moved {
             raw.events.push(Event::PointerMoved(moved));
             ctx.send_viewport_cmd(ViewportCommand::CursorPosition(moved));
         }
-        let at = moved.or(last).unwrap_or_else(|| ctx.screen_rect().center());
+        let at = moved
+            .or(last)
+            .unwrap_or_else(|| ctx.content_rect().center());
         for click in self.shared.take_clicks() {
             let (button, times) = match click {
                 PointerClick::Left => (PointerButton::Primary, 1),
@@ -127,7 +129,7 @@ impl Controls {
                         pos: at,
                         button,
                         pressed,
-                        modifiers: raw.modifiers,
+                        modifiers,
                     });
                 }
             }
@@ -170,7 +172,7 @@ impl Controls {
         };
         let out = self.shared.frame(input, &mut host);
         keys::take_used(env.ctx, &out.used);
-        if let Some(saved) = self.screenshots.take(env.ctx) {
+        if let Some(saved) = self.screenshots.take() {
             let saved = saved.map(|path| path.display().to_string());
             self.shared.screenshot_taken(env.frame, env.profile, saved);
         }

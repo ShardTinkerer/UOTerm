@@ -2,7 +2,7 @@
 //! call lays one row under the last, and the wheel scrolls the column. A
 //! row out of sight draws nothing and takes no click.
 
-use super::super::boxes_ui::CELL_RADIUS;
+use super::super::boxes_ui::{wheel_over, CELL_RADIUS};
 use super::super::theme::{self, text_font};
 use crate::window::bridge;
 use eframe::egui::{self, Align2, Color32, CornerRadius, Id, Pos2, Rect, Vec2};
@@ -29,14 +29,7 @@ impl<'a> Rows<'a> {
     /// A column in `body`, scrolled `scroll` points down. The wheel over
     /// the body moves the scroll.
     pub fn new(ui: &'a mut egui::Ui, body: Rect, key: &'a str, scroll: f32) -> Self {
-        let turned = ui.input(|i| {
-            let over = i.pointer.hover_pos().is_some_and(|p| body.contains(p));
-            if over {
-                i.raw_scroll_delta.y
-            } else {
-                0.0
-            }
-        });
+        let turned = wheel_over(ui, body);
         Self {
             ui,
             body,
@@ -65,7 +58,7 @@ impl<'a> Rows<'a> {
     }
 
     fn id(&self, part: &str, index: usize) -> Id {
-        Id::new((self.key, part, index))
+        Id::unique((self.key, part, index))
     }
 
     /// Words on a row of their own.
@@ -124,7 +117,7 @@ impl<'a> Rows<'a> {
                 Vec2::new(button_width, row.height()),
             );
             right = area.left() - GAP;
-            let id = Id::new((self.key, part, index, at));
+            let id = Id::unique((self.key, part, index, at));
             if theme::segment_keyed(self.ui, area, id, label, *color) {
                 pressed = Some(at);
             }
@@ -156,7 +149,7 @@ impl<'a> Rows<'a> {
             field,
             egui::TextEdit::singleline(words)
                 .id(self.id(part, 0))
-                .frame(false)
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(hint)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),

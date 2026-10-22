@@ -91,7 +91,7 @@ pub fn carry_and_land(
 fn draw_carried(ui: &egui::Ui, at: Pos2, item: &WatchPackItem, scene: &mut Scene) {
     let painter = ui.ctx().layer_painter(egui::LayerId::new(
         egui::Order::Tooltip,
-        Id::new("desk-carry"),
+        Id::unique("desk-carry"),
     ));
     let area = Rect::from_center_size(at, Vec2::splat(CARRY_SIDE));
     if let Some((texture, sprite)) = scene.item_picture(item.graphic, item.hue) {
@@ -139,7 +139,7 @@ pub fn split_box(
         WORDS_MOVE,
         theme::GOAL,
     );
-    let backdrop = ui.interact(panel, Id::new("desk-split"), Sense::click());
+    let backdrop = ui.interact(panel, Id::unique("desk-split"), Sense::click());
     let closed = frame::controls(ui, panel, &spec, profile, tools).is_some();
     let cancel = closed
         || ui.input(|i| i.key_pressed(Key::Escape))

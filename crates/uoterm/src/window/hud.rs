@@ -497,7 +497,7 @@ mod tests {
         let ctx = egui::Context::default();
         theme::install(&ctx);
         let mut hud = Hud::default();
-        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+        ctx.run_pass(egui::RawInput::default(), |ctx| {
             let painter = ctx.layer_painter(egui::LayerId::background());
             hud.draw(
                 &painter,
@@ -506,7 +506,8 @@ mod tests {
                 (0.0, ONE_FRAME),
                 &profile,
             );
-        });
+        })
+        .drop_without_applying_deltas();
         let ids: Vec<&str> = hud.panels.iter().map(|(id, _)| *id).collect();
         assert_eq!(ids, vec![ACTIVITY_ID, PACK_ID, VITALS_ID]);
         assert!(

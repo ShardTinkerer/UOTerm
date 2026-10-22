@@ -161,7 +161,7 @@ impl MapItemUi {
         }
         let plotting = plotting(frame, map);
         if plotting {
-            let response = ui.interact(land, Id::new(("map-item", map.serial)), Sense::click());
+            let response = ui.interact(land, Id::unique(("map-item", map.serial)), Sense::click());
             if response.hovered() {
                 super::tips::label(ui, HINT_PIN, "");
             }
@@ -243,7 +243,7 @@ impl MapItemUi {
             let area = Rect::from_center_size(spot, Vec2::splat(PIN_REACH * 2.0));
             let response = ui.interact(
                 area,
-                Id::new(("map-pin", map.serial, at)),
+                Id::unique(("map-pin", map.serial, at)),
                 Sense::click_and_drag(),
             );
             if response.hovered() {
@@ -322,9 +322,8 @@ impl MapItemUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(wish)
-                .id(Id::new(("map-wish", map.serial)))
-                .frame(false)
-                .margin(egui::Margin::symmetric(8, 6))
+                .id(Id::unique(("map-wish", map.serial)))
+                .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                 .hint_text(hint)
                 .font(text_font(theme::SIZE_BODY))
                 .text_color(theme::TEXT),
@@ -415,8 +414,7 @@ impl ProfileUi {
                 ui.put(
                     body,
                     egui::TextEdit::multiline(words)
-                        .frame(false)
-                        .margin(egui::Margin::symmetric(8, 6))
+                        .frame(theme::bare_field(egui::Margin::symmetric(8, 6)))
                         .hint_text(HINT_PROFILE)
                         .font(text_font(theme::SIZE_BODY))
                         .text_color(theme::TEXT),

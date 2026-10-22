@@ -144,7 +144,7 @@ impl SkillsTab {
         if theme::segment_keyed(
             ui,
             button(second),
-            Id::new("skills-new-group"),
+            Id::unique("skills-new-group"),
             WORDS_NEW_GROUP,
             theme::GOAL,
         ) {
@@ -160,7 +160,7 @@ impl SkillsTab {
         if theme::segment_keyed(
             ui,
             button(BAR_BUTTON_WIDTH),
-            Id::new("skills-reset"),
+            Id::unique("skills-reset"),
             WORDS_RESET,
             theme::TEXT,
         ) {
@@ -186,14 +186,15 @@ impl SkillsTab {
         if theme::segment_keyed(
             ui,
             yes,
-            Id::new("skills-reset-yes"),
+            Id::unique("skills-reset-yes"),
             WORDS_YES,
             theme::ALARM,
         ) {
             profile.skill_groups.clear();
             tools.keep_profile(profile);
             self.asking_reset = false;
-        } else if theme::segment_keyed(ui, no, Id::new("skills-reset-no"), WORDS_NO, theme::TEXT) {
+        } else if theme::segment_keyed(ui, no, Id::unique("skills-reset-no"), WORDS_NO, theme::TEXT)
+        {
             self.asking_reset = false;
         }
     }
@@ -218,7 +219,7 @@ impl SkillsTab {
                     Align2::RIGHT_CENTER,
                 ),
             };
-            let response = ui.interact(area, Id::new(("skills-sort", column)), Sense::click());
+            let response = ui.interact(area, Id::unique(("skills-sort", column)), Sense::click());
             let chosen = sorts && self.sort == sort;
             let color = if chosen || (sorts && response.hovered()) {
                 theme::GOAL
@@ -359,7 +360,7 @@ impl SkillsTab {
             && theme::segment_keyed(
                 ui,
                 delete_area(row),
-                Id::new(("skill-group-delete", at)),
+                Id::unique(("skill-group-delete", at)),
                 WORDS_DELETE,
                 theme::ALARM,
             )
@@ -386,7 +387,7 @@ impl SkillsTab {
         if theme::segment_keyed(
             ui,
             fold,
-            Id::new(("skill-fold", at)),
+            Id::unique(("skill-fold", at)),
             fold_words,
             theme::TEXT,
         ) {
@@ -407,8 +408,8 @@ impl SkillsTab {
             let field = ui.put(
                 name,
                 egui::TextEdit::singleline(typed)
-                    .id(Id::new(("skill-group-name", at)))
-                    .frame(false)
+                    .id(Id::unique(("skill-group-name", at)))
+                    .frame(theme::bare_field(theme::FIELD_MARGIN))
                     .font(title_font(theme::SIZE_SMALL))
                     .text_color(theme::TEXT),
             );
@@ -424,7 +425,7 @@ impl SkillsTab {
             }
             return changed;
         }
-        let response = ui.interact(name, Id::new(("skill-group", at)), Sense::click());
+        let response = ui.interact(name, Id::unique(("skill-group", at)), Sense::click());
         if self.selected == Some(at) {
             ui.painter()
                 .rect_filled(name, CornerRadius::same(CELL_RADIUS), theme::BUTTON);
@@ -454,7 +455,7 @@ impl SkillsTab {
     /// The selected group, when Delete was pressed, as in the classic gump.
     fn delete_key(&self, ui: &egui::Ui) -> Option<usize> {
         let pressed = self.renaming.is_none()
-            && !ui.ctx().wants_keyboard_input()
+            && !ui.ctx().egui_wants_keyboard_input()
             && ui.input(|i| i.key_pressed(Key::Delete));
         self.selected.filter(|_| pressed)
     }
@@ -513,7 +514,7 @@ impl SkillsTab {
             name: skill.name.clone(),
         };
         let mut offer = None;
-        let dragged = ui.interact(row, Id::new(("skill-row", skill.id)), Sense::drag());
+        let dragged = ui.interact(row, Id::unique(("skill-row", skill.id)), Sense::drag());
         if live && dragged.drag_started() {
             self.dragging = Some(skill.id);
             if skill.usable {
@@ -527,7 +528,7 @@ impl SkillsTab {
             Pos2::new(row.left() + LOCK_SIDE / 2.0, row.center().y),
             Vec2::splat(LOCK_SIDE),
         );
-        let lock_response = ui.interact(lock, Id::new(("skill-lock", skill.id)), Sense::click());
+        let lock_response = ui.interact(lock, Id::unique(("skill-lock", skill.id)), Sense::click());
         let lock_color = if live && lock_response.hovered() {
             theme::TEXT
         } else {

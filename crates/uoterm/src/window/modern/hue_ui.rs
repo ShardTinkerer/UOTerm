@@ -55,7 +55,7 @@ impl HueGridUi {
             ui.painter()
                 .rect_filled(cell, CornerRadius::ZERO, tools.scene.words_color(hue));
             let clicked = ui
-                .interact(cell, Id::new((key, "hue-cell", index)), Sense::click())
+                .interact(cell, Id::unique((key, "hue-cell", index)), Sense::click())
                 .clicked();
             if clicked && live {
                 pick.index = index;
@@ -103,7 +103,7 @@ impl HueGridUi {
         if theme::segment_keyed(
             ui,
             area,
-            Id::new((key, "eyedropper")),
+            Id::unique((key, "eyedropper")),
             WORDS_EYEDROPPER,
             color,
         ) {

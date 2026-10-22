@@ -13,7 +13,7 @@
 //! What each bar shows and does is `model::health_bars`', as the classic
 //! bars have it.
 
-use super::super::boxes_ui::Tools;
+use super::super::boxes_ui::{wheel_over, Tools};
 use super::super::control::Act;
 use super::super::desk::Zone;
 use super::super::model::health_bars::{
@@ -378,14 +378,7 @@ impl BarsUi {
         }
         let fit = ((body.height() / ROW).floor() as usize).max(1);
         let last_first = frame.mobiles.len().saturating_sub(fit);
-        let turned = ui.input(|i| {
-            let over = i.pointer.hover_pos().is_some_and(|at| body.contains(at));
-            if over {
-                i.raw_scroll_delta.y
-            } else {
-                0.0
-            }
-        });
+        let turned = wheel_over(ui, body);
         self.first_row = if turned < 0.0 {
             self.first_row + ROWS_PER_NOTCH
         } else if turned > 0.0 {
@@ -467,7 +460,7 @@ impl BarsUi {
         );
         let response = ui.interact(
             row,
-            Id::new(("near-row", mobile.serial)),
+            Id::unique(("near-row", mobile.serial)),
             Sense::click_and_drag(),
         );
         tools
@@ -612,7 +605,7 @@ impl BarsUi {
                 if theme::segment_keyed(
                     ui,
                     button,
-                    Id::new(("bar-cast", &id, at)),
+                    Id::unique(("bar-cast", &id, at)),
                     words,
                     theme::GOAL,
                 ) {
@@ -624,7 +617,7 @@ impl BarsUi {
             Pos2::new(panel.left(), inner.top() + frame::TITLE_ROW),
             Pos2::new(panel.right(), y),
         );
-        let response = ui.interact(body, Id::new(("bar-body", &id)), Sense::click());
+        let response = ui.interact(body, Id::unique(("bar-body", &id)), Sense::click());
         tools.desk.zone(bridge::area(panel), Zone::Into(serial));
         self.clicked(ui, &response, serial, &bar.name, frame, tools);
         let mut closed = false;
@@ -653,7 +646,7 @@ impl BarsUi {
     ) -> bool {
         if frame.target_cursor && ui.button(WORDS_TARGET).clicked() {
             act(frame, tools, Act::Target(serial));
-            ui.close_menu();
+            ui.close();
         }
         if health_bars::name_editable(frame, facts) {
             ui.horizontal(|ui| {
@@ -668,13 +661,13 @@ impl BarsUi {
                         act(frame, tools, renamed);
                     }
                     self.renaming.clear();
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         }
         let closed = ui.button(WORDS_CLOSE).clicked();
         if closed {
-            ui.close_menu();
+            ui.close();
         }
         closed
     }

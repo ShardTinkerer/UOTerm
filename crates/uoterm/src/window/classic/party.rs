@@ -258,7 +258,7 @@ impl GumpBody for InviteGump {
     fn draw(&mut self, g: &mut Canvas<'_>, cx: &mut GumpContext<'_>) {
         if !self.placed {
             self.placed = true;
-            let screen = g.ctx().screen_rect();
+            let screen = g.ctx().content_rect();
             let place = eframe::egui::Pos2::new(
                 screen.center().x - INVITE_LEFT_OF_MIDDLE,
                 screen.top() + INVITE_TOP,

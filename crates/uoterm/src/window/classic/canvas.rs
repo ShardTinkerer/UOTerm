@@ -16,12 +16,12 @@ use super::text::{HtmlLook, TextKit, TextLook, TextTexture};
 use super::text_field::{FieldKey, FieldOutcome, TextField};
 use crate::window::bridge;
 use crate::window::keys;
+use crate::window::map_view;
 use crate::window::scene::Scene;
 use eframe::egui::{
-    self, Color32, CornerRadius, Event, EventFilter, Id, Key, Order, Pos2, Rect, Response, Sense,
-    Stroke, TextureId, Vec2,
+    self, AsIdSalt, Color32, CornerRadius, Event, EventFilter, Id, Key, Order, Pos2, Rect,
+    Response, Sense, Stroke, TextureId, Vec2,
 };
-use std::hash::Hash;
 use uoterm_view::art::Sprite;
 use uoterm_view::ui::gump_frame::{frame_part_ids, frame_parts, FRAME_PARTS};
 use uoterm_view::ui::html::{HtmlBox, HTML_BACKGROUND, HTML_BAR_ROOM};
@@ -272,7 +272,7 @@ impl<'a> Canvas<'a> {
         Rect::from_min_size(self.at(x, y), size * self.input.scale)
     }
 
-    fn id(&self, key: impl Hash) -> Id {
+    fn id(&self, key: impl AsIdSalt) -> Id {
         self.input.id.with(key)
     }
 
@@ -613,7 +613,7 @@ impl<'a> Canvas<'a> {
     }
 
     /// A box that takes clicks, with nothing drawn.
-    pub fn click_area(&mut self, key: impl Hash, x: i32, y: i32, w: i32, h: i32) -> Response {
+    pub fn click_area(&mut self, key: impl AsIdSalt, x: i32, y: i32, w: i32, h: i32) -> Response {
         let rect = self.area(x, y, Vec2::new(w as f32, h as f32));
         let response = self
             .ui
@@ -624,7 +624,7 @@ impl<'a> Canvas<'a> {
 
     /// A box that takes clicks and shows the white glow of the classic
     /// HitBox under the pointer.
-    pub fn hit_box(&mut self, key: impl Hash, x: i32, y: i32, w: i32, h: i32) -> Response {
+    pub fn hit_box(&mut self, key: impl AsIdSalt, x: i32, y: i32, w: i32, h: i32) -> Response {
         let response = self.click_area(key, x, y, w, h);
         if response.hovered() {
             self.ui.painter().with_clip_rect(self.clip).rect_filled(
@@ -638,7 +638,14 @@ impl<'a> Canvas<'a> {
 
     /// A gump picture that takes clicks and drags itself, as a spell icon
     /// of a book does: dragging it does not drag the gump.
-    pub fn pic_button(&mut self, key: impl Hash, x: i32, y: i32, gump: u16, hue: u16) -> Response {
+    pub fn pic_button(
+        &mut self,
+        key: impl AsIdSalt,
+        x: i32,
+        y: i32,
+        gump: u16,
+        hue: u16,
+    ) -> Response {
         let size = self.gump_size(gump).unwrap_or(Vec2::ZERO);
         let rect = self.area(x, y, size);
         self.picture_at(gump, hue, rect);
@@ -650,7 +657,7 @@ impl<'a> Canvas<'a> {
     /// files lack its picture.
     pub fn item_button(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         look: ItemLook,
@@ -674,12 +681,12 @@ impl<'a> Canvas<'a> {
 
     /// A box that takes clicks and drags, with nothing drawn, as a row of
     /// the skills gump does: dragging it does not drag the gump.
-    pub fn drag_area(&mut self, key: impl Hash, x: i32, y: i32, w: i32, h: i32) -> Response {
+    pub fn drag_area(&mut self, key: impl AsIdSalt, x: i32, y: i32, w: i32, h: i32) -> Response {
         let rect = self.area(x, y, Vec2::new(w as f32, h as f32));
         self.drag_control(key, rect)
     }
 
-    fn drag_control(&mut self, key: impl Hash, rect: Rect) -> Response {
+    fn drag_control(&mut self, key: impl AsIdSalt, rect: Rect) -> Response {
         let response = self.ui.interact(
             rect.intersect(self.clip),
             self.id(key),
@@ -693,7 +700,7 @@ impl<'a> Canvas<'a> {
     /// size, as a `buttontileart` does.
     pub fn button_sized(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         art: ButtonArt,
@@ -712,19 +719,19 @@ impl<'a> Canvas<'a> {
     }
 
     /// Puts the keys in the text box made with `key`.
-    pub fn focus(&mut self, key: impl Hash) {
+    pub fn focus(&mut self, key: impl AsIdSalt) {
         let id = self.id(key);
         self.ui.memory_mut(|m| m.request_focus(id));
     }
 
     /// A button of gump pictures. True when it was clicked.
-    pub fn button(&mut self, key: impl Hash, x: i32, y: i32, art: ButtonArt) -> bool {
+    pub fn button(&mut self, key: impl AsIdSalt, x: i32, y: i32, art: ButtonArt) -> bool {
         self.art_button(key, x, y, art, None).clicked()
     }
 
     fn art_button(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         art: ButtonArt,
@@ -756,7 +763,7 @@ impl<'a> Canvas<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn caption_button(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         art: ButtonArt,
@@ -787,7 +794,7 @@ impl<'a> Canvas<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn nice_button(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         w: i32,
@@ -815,7 +822,7 @@ impl<'a> Canvas<'a> {
     /// player flipped it.
     pub fn checkbox(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         (off, on): (u16, u16),
@@ -833,7 +840,7 @@ impl<'a> Canvas<'a> {
     /// the player picked it.
     pub fn radio(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         (off, on): (u16, u16),
@@ -845,7 +852,7 @@ impl<'a> Canvas<'a> {
 
     fn choice_box(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         (off, on): (u16, u16),
@@ -881,7 +888,7 @@ impl<'a> Canvas<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn slider(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         width: i32,
@@ -910,7 +917,7 @@ impl<'a> Canvas<'a> {
             *value = layout::knob_value(along, min, max, travel).clamp(min, max);
         }
         if response.hovered() {
-            let wheel = self.ui.input(|i| i.raw_scroll_delta.y);
+            let wheel = map_view::wheel_points(self.ui);
             if wheel != 0.0 {
                 *value = (*value + wheel.signum() as i32).clamp(min, max);
             }
@@ -953,7 +960,7 @@ impl<'a> Canvas<'a> {
     /// `value` runs from 0 to `max`. Gives its width.
     pub fn scroll_bar(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         h: i32,
@@ -1059,7 +1066,7 @@ impl<'a> Canvas<'a> {
     /// and of the journal. `value` runs from 0 to `max`.
     pub fn scroll_flag(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         h: i32,
@@ -1100,7 +1107,7 @@ impl<'a> Canvas<'a> {
         if !self.hovered(x, y, w, h) {
             return;
         }
-        let wheel = self.ui.input(|i| i.raw_scroll_delta.y);
+        let wheel = map_view::wheel_points(self.ui);
         if wheel != 0.0 {
             *value = (*value - wheel.signum() as i32 * SCROLL_STEP).clamp(0, max.max(0));
         }
@@ -1112,7 +1119,7 @@ impl<'a> Canvas<'a> {
         if !self.hovered(x, y, w, h) {
             return 0;
         }
-        let wheel = self.ui.input(|i| i.raw_scroll_delta.y);
+        let wheel = map_view::wheel_points(self.ui);
         if wheel == 0.0 {
             0
         } else {
@@ -1122,7 +1129,7 @@ impl<'a> Canvas<'a> {
 
     /// Scrolls the scroll area made with `key` by `delta` pixels, as the
     /// arrows of a gump that scroll it do.
-    pub fn scroll_by(&mut self, key: impl Hash, delta: i32) {
+    pub fn scroll_by(&mut self, key: impl AsIdSalt, delta: i32) {
         let value_key = self.id(key).with("value");
         self.ui.data_mut(|d| {
             let value: i32 = d.get_temp(value_key).unwrap_or(0);
@@ -1134,7 +1141,7 @@ impl<'a> Canvas<'a> {
     /// draws the content from the top left of the box and gives its height.
     pub fn scroll_area(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         w: i32,
@@ -1178,7 +1185,7 @@ impl<'a> Canvas<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn html(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         w: i32,
@@ -1233,7 +1240,7 @@ impl<'a> Canvas<'a> {
     #[allow(clippy::too_many_arguments)]
     pub fn text_box(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         w: i32,
@@ -1403,7 +1410,7 @@ impl<'a> Canvas<'a> {
     /// picked another entry.
     pub fn combobox(
         &mut self,
-        key: impl Hash,
+        key: impl AsIdSalt,
         x: i32,
         y: i32,
         w: i32,
@@ -1519,7 +1526,7 @@ impl<'a> Canvas<'a> {
 
     /// A small box in the color of a hue, framed as in the Options gump.
     /// True when it was clicked.
-    pub fn color_box(&mut self, key: impl Hash, x: i32, y: i32, hue: u16) -> bool {
+    pub fn color_box(&mut self, key: impl AsIdSalt, x: i32, y: i32, hue: u16) -> bool {
         let size = self.gump_size(COLOR_BOX).unwrap_or(Vec2::ZERO);
         let rect = self.area(x, y, size);
         let response = self

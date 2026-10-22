@@ -18,14 +18,14 @@ pub struct LightMap {
 impl LightMap {
     /// Lays the light map over `rect`, from its top left corner.
     pub fn draw(&mut self, painter: &Painter, rect: Rect, light: &LightCells) {
-        let image = ColorImage {
-            size: [light.width, light.height],
-            pixels: light
+        let image = ColorImage::new(
+            [light.width, light.height],
+            light
                 .cells
                 .iter()
                 .map(|cell| bridge::color(*cell))
                 .collect(),
-        };
+        );
         let texture = self.texture.get_or_insert_with(|| {
             painter
                 .ctx()

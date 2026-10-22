@@ -185,7 +185,7 @@ impl GridUi {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("grid-favorite", serial)),
+                Id::unique(("grid-favorite", serial)),
                 WORDS_FAVORITE,
                 color,
             ) {
@@ -201,7 +201,7 @@ impl GridUi {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("grid-loot", serial)),
+                Id::unique(("grid-loot", serial)),
                 WORDS_LOOT_ALL,
                 theme::GOAL,
             ) {
@@ -214,7 +214,7 @@ impl GridUi {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new(("grid-loot-bag", serial)),
+                Id::unique(("grid-loot-bag", serial)),
                 WORDS_LOOT_BAG,
                 theme::TEXT,
             ) {
@@ -250,8 +250,8 @@ impl GridUi {
         ui.put(
             field,
             egui::TextEdit::singleline(words)
-                .id(Id::new(("grid-search", serial)))
-                .frame(false)
+                .id(Id::unique(("grid-search", serial)))
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_SEARCH)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
@@ -277,7 +277,7 @@ impl GridUi {
                 Vec2::new(STRIP_BUTTON_WIDTH, strip.height()),
             );
             left = area.right() + TITLE_GAP;
-            let key = Id::new(("grid-chosen", serial, index));
+            let key = Id::unique(("grid-chosen", serial, index));
             if theme::segment_keyed(ui, area, key, words, theme::TEXT) {
                 for act in self.memory.strip_press(press, view.frame) {
                     tools.hand.act(act);
@@ -378,7 +378,7 @@ impl GridUi {
         let grid_loot = view.shown.grid_loot;
         let response = ui.interact(
             cell,
-            Id::new(("grid-cell", serial, slot)),
+            Id::unique(("grid-cell", serial, slot)),
             Sense::click_and_drag(),
         );
         let fill = if response.hovered() {
@@ -544,7 +544,7 @@ impl GridUi {
         );
         let slider = ui.interact(
             bar,
-            Id::new(("grid-loot-amount", item.serial)),
+            Id::unique(("grid-loot-amount", item.serial)),
             Sense::click_and_drag(),
         );
         let painter = ui.painter();

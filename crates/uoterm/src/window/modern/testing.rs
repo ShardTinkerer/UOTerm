@@ -52,8 +52,8 @@ pub fn draw_frames(
             screen_rect: Some(screen),
             ..RawInput::default()
         };
-        let _ = ctx.run(input, |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| {
+        ctx.run_ui(input, |root| {
+            egui::CentralPanel::default().show(root, |ui| {
                 let mut tools = Tools {
                     scene: &mut scene,
                     hand: &hand,
@@ -67,7 +67,8 @@ pub fn draw_frames(
                 };
                 draw(ui, screen, &mut tools, profile);
             });
-        });
+        })
+        .drop_without_applying_deltas();
     }
     // The folder is there only when a panel kept the profile.
     if home_dir.exists() {
@@ -108,31 +109,29 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    /// Takes in the textures a frame made or changed.
-    pub fn take(&mut self, delta: &egui::TexturesDelta) {
-        for (id, change) in &delta.set {
-            let image = match &change.image {
-                ImageData::Color(image) => (**image).clone(),
-                ImageData::Font(font) => ColorImage {
-                    size: font.size,
-                    pixels: font.srgba_pixels(None).collect(),
-                },
-            };
-            let filter = change.options.magnification;
-            match change.pos {
-                None => {
-                    self.textures.insert(*id, (image, filter));
-                }
-                Some([left, top]) => {
-                    let Some((whole, _)) = self.textures.get_mut(id) else {
-                        continue;
-                    };
-                    let [width, height] = image.size;
-                    for row in 0..height {
-                        let to = (top + row) * whole.size[0] + left;
-                        let from = row * width;
-                        whole.pixels[to..to + width]
-                            .copy_from_slice(&image.pixels[from..from + width]);
+    /// Takes in the textures a frame made or changed, and leaves the
+    /// change list empty: the canvas applied it.
+    pub fn take(&mut self, delta: &mut egui::TexturesDelta) {
+        for (id, changes) in &delta.set {
+            for change in changes {
+                let ImageData::Color(image) = &change.image;
+                let image = (**image).clone();
+                let filter = change.options.magnification;
+                match change.pos {
+                    None => {
+                        self.textures.insert(*id, (image, filter));
+                    }
+                    Some([left, top]) => {
+                        let Some((whole, _)) = self.textures.get_mut(id) else {
+                            continue;
+                        };
+                        let [width, height] = image.size;
+                        for row in 0..height {
+                            let to = (top + row) * whole.size[0] + left;
+                            let from = row * width;
+                            whole.pixels[to..to + width]
+                                .copy_from_slice(&image.pixels[from..from + width]);
+                        }
                     }
                 }
             }
@@ -140,12 +139,13 @@ impl Canvas {
         for id in &delta.free {
             self.textures.remove(id);
         }
+        delta.clear();
     }
 
     /// Paints the shapes of a frame, as a screen of `size` points shows
     /// them at one pixel for each point.
     pub fn paint(&self, ctx: &egui::Context, output: egui::FullOutput, size: Vec2) -> ColorImage {
-        let mut picture = ColorImage::new([size.x as usize, size.y as usize], Color32::BLACK);
+        let mut picture = ColorImage::filled([size.x as usize, size.y as usize], Color32::BLACK);
         for ClippedPrimitive {
             clip_rect,
             primitive,

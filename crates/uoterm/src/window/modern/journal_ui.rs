@@ -8,7 +8,7 @@
 //! shuts; the chat box sits in its last row, and stays in a strip of its
 //! own while the journal is shut.
 
-use super::super::boxes_ui::{Tools, CELL_RADIUS};
+use super::super::boxes_ui::{wheel_over, Tools, CELL_RADIUS};
 use super::super::model::host;
 use super::super::model::journal::{self, Entry, JournalLog};
 use super::super::model::places;
@@ -248,7 +248,7 @@ impl JournalUi {
                 theme::TEXT_DIM
             };
             let name = profile.journal.tabs[at].name.clone();
-            let key = Id::new(("journal-tab", at));
+            let key = Id::unique(("journal-tab", at));
             if theme::segment_keyed(ui, area, key, &name, color) {
                 self.tab = at;
                 self.back = 0;
@@ -271,7 +271,7 @@ impl JournalUi {
                         tab.name = named;
                         self.renaming.clear();
                         changed = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
                 ui.separator();
@@ -286,7 +286,7 @@ impl JournalUi {
                 ui.separator();
                 if ui.button(WORDS_DELETE_TAB).clicked() {
                     delete_tab = Some(tab.name.clone());
-                    ui.close_menu();
+                    ui.close();
                 }
             });
         }
@@ -308,7 +308,7 @@ impl JournalUi {
             if theme::segment_keyed(
                 ui,
                 area,
-                Id::new("journal-new-tab"),
+                Id::unique("journal-new-tab"),
                 WORDS_NEW_TAB,
                 theme::GOAL,
             ) {
@@ -324,8 +324,8 @@ impl JournalUi {
         let typed = ui.put(
             area,
             egui::TextEdit::singleline(name)
-                .id(Id::new("journal-new-tab-name"))
-                .frame(false)
+                .id(Id::unique("journal-new-tab-name"))
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_TAB_NAME)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
@@ -358,8 +358,8 @@ impl JournalUi {
         let typed = ui.put(
             field,
             egui::TextEdit::singleline(&mut self.search)
-                .id(Id::new("journal-search"))
-                .frame(false)
+                .id(Id::unique("journal-search"))
+                .frame(theme::bare_field(theme::FIELD_MARGIN))
                 .hint_text(HINT_SEARCH)
                 .font(text_font(theme::SIZE_SMALL))
                 .text_color(theme::TEXT),
@@ -384,7 +384,13 @@ impl JournalUi {
                 );
             }
         }
-        theme::segment_keyed(ui, save, Id::new("journal-save"), WORDS_SAVE, theme::TEXT)
+        theme::segment_keyed(
+            ui,
+            save,
+            Id::unique("journal-save"),
+            WORDS_SAVE,
+            theme::TEXT,
+        )
     }
 }
 
@@ -403,7 +409,7 @@ fn filters(ui: &egui::Ui, row: Rect, tools: &Tools<'_>, profile: &mut Profile) {
         } else {
             theme::TEXT_FAINT
         };
-        if theme::segment_keyed(ui, area, Id::new(("journal-filter", at)), words, color) {
+        if theme::segment_keyed(ui, area, Id::unique(("journal-filter", at)), words, color) {
             *shown = !*shown;
             tools.keep_profile(profile);
         }
@@ -465,14 +471,7 @@ fn lines(
         );
         return 0;
     }
-    let notches = ui.input(|i| {
-        let over = i.pointer.hover_pos().is_some_and(|p| area.contains(p));
-        if over {
-            i.raw_scroll_delta.y / PANEL_WHEEL_POINTS
-        } else {
-            0.0
-        }
-    });
+    let notches = wheel_over(ui, area) / PANEL_WHEEL_POINTS;
     let back = journal::scrolled_back(back, journal_wheel_turns(notches));
     let (range, back) = journal::visible(shown.len(), back);
     let mut bottom = area.bottom();
