@@ -64,6 +64,7 @@ mod scripting;
 mod terrain;
 mod travel;
 mod ultima_live;
+mod watch_hold;
 use agents::Agents;
 use scripting::Scripting;
 
@@ -1200,8 +1201,14 @@ async fn run_session(
     let mut tick = interval(tick_period);
     ping.set_missed_tick_behavior(MissedTickBehavior::Skip);
     tick.set_missed_tick_behavior(MissedTickBehavior::Skip);
+    let mut watch_hold = watch_hold::WatchHold::default();
     loop {
         let step_due = inner.movement.step_wake(Instant::now());
+        if !watch_hold.step_comes_first(step_due, Instant::now()) {
+            for (call, reply) in watch_hold.release() {
+                watch_hold::answer_watch(&mut inner, &mut watch_hold, call, reply);
+            }
+        }
         tokio::select! {
             cmd = rx.recv() => {
                 match cmd {
@@ -1213,6 +1220,12 @@ async fn run_session(
                             wait_for_journal(&mut inner, &call.args, reply, Instant::now());
                         } else if call.name == TOOL_NEXT_EVENT {
                             awareness::wait_for_event(&mut inner, &call.args, reply, Instant::now());
+                        } else if call.name == TOOL_WATCH {
+                            if watch_hold.step_comes_first(step_due, Instant::now()) {
+                                watch_hold.hold(call, reply);
+                            } else {
+                                watch_hold::answer_watch(&mut inner, &mut watch_hold, call, reply);
+                            }
                         } else {
                             let _ = reply.send(answer_now(&mut inner, call));
                         }
@@ -1239,7 +1252,14 @@ async fn run_session(
                 }
             }
             _ = ping.tick() => { latency::send_ping(&mut inner); }
-            () = wake_at(step_due) => { pump_movement(&mut inner, Instant::now()); }
+            () = wake_at(step_due) => {
+                pump_movement(&mut inner, Instant::now());
+                // Right after a step is the best time for a picture, even one
+                // too slow to fit between two steps.
+                for (call, reply) in watch_hold.release() {
+                    watch_hold::answer_watch(&mut inner, &mut watch_hold, call, reply);
+                }
+            }
             _ = tick.tick() => {
                 inner.latency.traffic.tick(Instant::now());
                 reflex_tick(&mut inner);
