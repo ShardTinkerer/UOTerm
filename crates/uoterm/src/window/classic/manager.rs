@@ -37,7 +37,7 @@ use std::collections::{BTreeMap, HashMap};
 use uoterm_nav::TextAlign;
 use uoterm_view::ui::gump_frame::rest_place;
 
-const AREA_ID: &str = "classic-gumps";
+const GUMPS_ID: &str = "classic-gumps";
 /// The ids of the places that drag a gump, apart from its controls.
 const BODY_KEY: &str = "body";
 const TIP_LAYER: &str = "classic-tip";
@@ -334,7 +334,7 @@ impl GumpManager {
         };
         match self.shown.iter().find(|gump| gump.id == id) {
             Some(gump) if primary_down && !gump.body_rects.is_empty() => {
-                ctx.set_dragged_id(Id::unique((AREA_ID, id)).with((BODY_KEY, 0)));
+                ctx.set_dragged_id(Id::unique((GUMPS_ID, id)).with((BODY_KEY, 0)));
                 self.pulled = None;
             }
             Some(_) if primary_down => {}
@@ -535,157 +535,158 @@ impl GumpManager {
         let mut closing = Vec::new();
         let mut tip = None;
         let ctx = ui.ctx().clone();
-        egui::Area::new(Id::unique(AREA_ID))
-            .order(Order::Middle)
-            .fixed_pos(screen.min)
-            .interactable(false)
-            .constrain(false)
-            .show(&ctx, |ui| {
-                for at in 0..self.shown.len() {
-                    if shared_only && !self.shown[at].rules.both_styles {
-                        continue;
-                    }
-                    let gump_id = self.shown[at].id;
-                    let egui_id = Id::unique((AREA_ID, gump_id));
-                    if self.shown[at].rules.modal {
-                        ui.interact(screen, egui_id.with("modal"), Sense::click_and_drag());
-                    }
-                    let locks = self.shown[at].body.locks(frame);
-                    let mut answers = std::mem::take(&mut self.answers);
-                    let mut cx = GumpContext {
-                        frame,
-                        hand,
-                        tips: &mut *tips,
-                        profile: &mut *profile,
-                        sound_note,
-                        me: gump_id,
-                        anchored: self.anchors.is_joined(&gump_id),
-                        desk: &mut *desk,
-                        journal,
-                        readings: &mut *readings,
-                        commands: &mut commands,
-                        macros: &mut macros,
-                        sounds: &mut sounds,
-                        answers: &mut answers,
-                        profile_changed: &mut changed,
-                        save_default: &mut save_default,
-                    };
-                    let rules = self.shown[at].rules;
-                    let mut right_click = false;
-                    if right_clicked == Some(gump_id) {
-                        let may_close = rules.right_click_closes && !locks.no_close;
-                        if may_close && !self.shown[at].locked {
-                            let joined = self.anchors.is_joined(&gump_id);
-                            let general = &cx.profile.general;
-                            let held_back = joined
-                                && general.alt_right_click_closes_anchored
-                                && !pointer.modifiers.alt;
-                            let whole_group = general.right_click_closes_anchored_group;
-                            if !held_back && self.shown[at].body.close(&mut cx) == Closing::Now {
-                                closing.push(gump_id);
-                                if whole_group {
-                                    closing.extend(self.anchors.partners(&gump_id));
-                                }
+        // The gumps go on a layer of their own over the world, with no area
+        // on it: a gump takes the clicks on its own parts, and everywhere
+        // else the pointer goes on to the world and the panels under it.
+        let mut layer = ui.new_child(
+            egui::UiBuilder::new()
+                .layer_id(LayerId::new(Order::Middle, Id::unique(GUMPS_ID)))
+                .max_rect(screen),
+        );
+        {
+            let ui = &mut layer;
+            for at in 0..self.shown.len() {
+                if shared_only && !self.shown[at].rules.both_styles {
+                    continue;
+                }
+                let gump_id = self.shown[at].id;
+                let egui_id = Id::unique((GUMPS_ID, gump_id));
+                if self.shown[at].rules.modal {
+                    ui.interact(screen, egui_id.with("modal"), Sense::click_and_drag());
+                }
+                let locks = self.shown[at].body.locks(frame);
+                let mut answers = std::mem::take(&mut self.answers);
+                let mut cx = GumpContext {
+                    frame,
+                    hand,
+                    tips: &mut *tips,
+                    profile: &mut *profile,
+                    sound_note,
+                    me: gump_id,
+                    anchored: self.anchors.is_joined(&gump_id),
+                    desk: &mut *desk,
+                    journal,
+                    readings: &mut *readings,
+                    commands: &mut commands,
+                    macros: &mut macros,
+                    sounds: &mut sounds,
+                    answers: &mut answers,
+                    profile_changed: &mut changed,
+                    save_default: &mut save_default,
+                };
+                let rules = self.shown[at].rules;
+                let mut right_click = false;
+                if right_clicked == Some(gump_id) {
+                    let may_close = rules.right_click_closes && !locks.no_close;
+                    if may_close && !self.shown[at].locked {
+                        let joined = self.anchors.is_joined(&gump_id);
+                        let general = &cx.profile.general;
+                        let held_back = joined
+                            && general.alt_right_click_closes_anchored
+                            && !pointer.modifiers.alt;
+                        let whole_group = general.right_click_closes_anchored_group;
+                        if !held_back && self.shown[at].body.close(&mut cx) == Closing::Now {
+                            closing.push(gump_id);
+                            if whole_group {
+                                closing.extend(self.anchors.partners(&gump_id));
                             }
-                        } else if !rules.right_click_closes {
-                            right_click = true;
                         }
-                    }
-                    if closing.contains(&gump_id) {
-                        self.answers = answers;
-                        continue;
-                    }
-                    if self.shown[at].fresh {
-                        if let Some(first) = self.shown[at].body.first_place(frame) {
-                            self.shown[at].place = first;
-                        }
-                        self.shown[at].fresh = false;
-                    }
-                    let mut drag = Vec2::ZERO;
-                    let mut drag_stopped = false;
-                    let mut body_click = None;
-                    let mut body_double_click = false;
-                    for (n, rect) in self.shown[at].body_rects.iter().enumerate() {
-                        let response = ui.interact(
-                            *rect,
-                            egui_id.with((BODY_KEY, n)),
-                            Sense::click_and_drag(),
-                        );
-                        drag += response.drag_delta();
-                        drag_stopped |= response.drag_stopped();
-                        if response.clicked() {
-                            body_click = response.interact_pointer_pos();
-                        }
-                        body_double_click |= response.double_clicked();
-                    }
-                    let input = CanvasInput {
-                        id: egui_id,
-                        origin: self.shown[at].place,
-                        scale,
-                        alpha,
-                        pointer: pointer.at.filter(|_| top_under_pointer == Some(gump_id)),
-                        body_click,
-                        body_double_click,
-                        right_click,
-                        size: match rules.resizable {
-                            Some((first, least)) => {
-                                Some(self.shown[at].size.unwrap_or(first).max(least))
-                            }
-                            None => self.shown[at].size,
-                        },
-                        map: frame.map,
-                    };
-                    let mut canvas = Canvas::new(ui, &mut *scene, &mut *text, input);
-                    self.shown[at].body.draw(&mut canvas, &mut cx);
-                    if let Some((_, least)) = rules.resizable {
-                        canvas.resize_grip(least);
-                    }
-                    let out = canvas.finish();
-                    let whole = out.whole;
-                    self.answers = answers;
-                    if out.tip.is_some() {
-                        tip = out.tip;
-                    }
-                    let gump = &mut self.shown[at];
-                    gump.drawn = out.drawn;
-                    gump.body_rects = out.body;
-                    gump.hits = out.hits;
-                    if let Some(size) = out.size_kept {
-                        gump.size = Some(size);
-                        changed |= self.keep(at, profile);
-                    }
-                    if let Some(place) = out.move_to {
-                        self.shown[at].place = place;
-                        changed |= self.keep(at, profile);
-                    }
-                    // A gump that opens at its first place opens wholly in
-                    // the window, as far as it fits, once its size is known.
-                    let gump = &mut self.shown[at];
-                    if let Some(whole) = whole.filter(|_| gump.unheld) {
-                        let held = places::held_inside(bridge::area(whole), bridge::area(screen));
-                        gump.place += bridge::pos2(held.min) - whole.min;
-                        gump.unheld = false;
-                        changed |= self.keep(at, profile);
-                    }
-                    if self.shown[at].locked && pointer.modifiers.alt {
-                        self.draw_lock(ui, at, &mut *scene, scale);
-                    }
-                    let may_move = rules.movable
-                        && !self.shown[at].locked
-                        && !locks.no_move
-                        && (!profile.general.alt_moves_gumps || pointer.modifiers.alt);
-                    if may_move && drag != Vec2::ZERO {
-                        self.drag(at, drag, &pointer.modifiers, profile);
-                        if let Some((_, place)) = self.shown[at].joining {
-                            let size = self.shown[at].drawn.map_or(Vec2::ZERO, |r| r.size());
-                            preview_join(ui, Rect::from_min_size(place, size));
-                        }
-                    }
-                    if drag_stopped {
-                        changed |= self.drop(at, screen, profile);
+                    } else if !rules.right_click_closes {
+                        right_click = true;
                     }
                 }
-            });
+                if closing.contains(&gump_id) {
+                    self.answers = answers;
+                    continue;
+                }
+                if self.shown[at].fresh {
+                    if let Some(first) = self.shown[at].body.first_place(frame) {
+                        self.shown[at].place = first;
+                    }
+                    self.shown[at].fresh = false;
+                }
+                let mut drag = Vec2::ZERO;
+                let mut drag_stopped = false;
+                let mut body_click = None;
+                let mut body_double_click = false;
+                for (n, rect) in self.shown[at].body_rects.iter().enumerate() {
+                    let response =
+                        ui.interact(*rect, egui_id.with((BODY_KEY, n)), Sense::click_and_drag());
+                    drag += response.drag_delta();
+                    drag_stopped |= response.drag_stopped();
+                    if response.clicked() {
+                        body_click = response.interact_pointer_pos();
+                    }
+                    body_double_click |= response.double_clicked();
+                }
+                let input = CanvasInput {
+                    id: egui_id,
+                    origin: self.shown[at].place,
+                    scale,
+                    alpha,
+                    pointer: pointer.at.filter(|_| top_under_pointer == Some(gump_id)),
+                    body_click,
+                    body_double_click,
+                    right_click,
+                    size: match rules.resizable {
+                        Some((first, least)) => {
+                            Some(self.shown[at].size.unwrap_or(first).max(least))
+                        }
+                        None => self.shown[at].size,
+                    },
+                    map: frame.map,
+                };
+                let mut canvas = Canvas::new(ui, &mut *scene, &mut *text, input);
+                self.shown[at].body.draw(&mut canvas, &mut cx);
+                if let Some((_, least)) = rules.resizable {
+                    canvas.resize_grip(least);
+                }
+                let out = canvas.finish();
+                let whole = out.whole;
+                self.answers = answers;
+                if out.tip.is_some() {
+                    tip = out.tip;
+                }
+                let gump = &mut self.shown[at];
+                gump.drawn = out.drawn;
+                gump.body_rects = out.body;
+                gump.hits = out.hits;
+                if let Some(size) = out.size_kept {
+                    gump.size = Some(size);
+                    changed |= self.keep(at, profile);
+                }
+                if let Some(place) = out.move_to {
+                    self.shown[at].place = place;
+                    changed |= self.keep(at, profile);
+                }
+                // A gump that opens at its first place opens wholly in
+                // the window, as far as it fits, once its size is known.
+                let gump = &mut self.shown[at];
+                if let Some(whole) = whole.filter(|_| gump.unheld) {
+                    let held = places::held_inside(bridge::area(whole), bridge::area(screen));
+                    gump.place += bridge::pos2(held.min) - whole.min;
+                    gump.unheld = false;
+                    changed |= self.keep(at, profile);
+                }
+                if self.shown[at].locked && pointer.modifiers.alt {
+                    self.draw_lock(ui, at, &mut *scene, scale);
+                }
+                let may_move = rules.movable
+                    && !self.shown[at].locked
+                    && !locks.no_move
+                    && (!profile.general.alt_moves_gumps || pointer.modifiers.alt);
+                if may_move && drag != Vec2::ZERO {
+                    self.drag(at, drag, &pointer.modifiers, profile);
+                    if let Some((_, place)) = self.shown[at].joining {
+                        let size = self.shown[at].drawn.map_or(Vec2::ZERO, |r| r.size());
+                        preview_join(ui, Rect::from_min_size(place, size));
+                    }
+                }
+                if drag_stopped {
+                    changed |= self.drop(at, screen, profile);
+                }
+            }
+        }
         for id in closing {
             if let Some(at) = self.shown.iter().position(|gump| gump.id == id) {
                 changed |= self.remove(at, profile);
