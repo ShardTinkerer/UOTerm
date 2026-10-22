@@ -993,16 +993,34 @@ fn emit_state(as_json: bool, state: &Value) -> Result<(), RuntimeError> {
     if as_json {
         println!("{state}");
     } else {
-        let yaml =
-            serde_yaml::to_string(state).map_err(|e| RuntimeError::Protocol(e.to_string()))?;
-        print!("{yaml}");
+        print!("{}", state_yaml(state)?);
     }
     Ok(())
+}
+
+fn state_yaml(state: &Value) -> Result<String, RuntimeError> {
+    serde_saphyr::to_string(state).map_err(|e| RuntimeError::Protocol(e.to_string()))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn state_prints_as_yaml() {
+        let state = serde_json::json!({
+            "self_state": {
+                "name": "Aldreth",
+                "hits": [50, 60],
+                "poisoned": false,
+                "target": null
+            }
+        });
+        assert_eq!(
+            state_yaml(&state).unwrap(),
+            "self_state:\n  hits:\n  - 50\n  - 60\n  name: Aldreth\n  poisoned: false\n  target: null\n"
+        );
+    }
 
     #[test]
     fn a_bind_to_every_address_names_no_address_to_open() {
