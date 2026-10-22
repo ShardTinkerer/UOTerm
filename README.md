@@ -66,7 +66,7 @@ encryption.
 
 ## What you need
 
-- Rust 1.87 or later (stable). `rust-toolchain.toml` pins `stable`.
+- Rust 1.95 or later (stable). `rust-toolchain.toml` pins `stable`.
 - Linux or Windows. Nobody has tested macOS.
 - On Linux, the ALSA package for sound: `sudo apt install libasound2-dev`
   (Debian, Ubuntu) or `alsa-lib-devel` (Fedora).
@@ -81,8 +81,8 @@ For the web client you also need:
 
 - Node.js and npm.
 - The WebAssembly target: `rustup target add wasm32-unknown-unknown`.
-- `wasm-bindgen-cli` 0.2.100. It must be the same version the workspace
-  pins for `wasm-bindgen`: `cargo install wasm-bindgen-cli --version 0.2.100`.
+- `wasm-bindgen-cli` 0.2.129. It must be the same version the workspace
+  pins for `wasm-bindgen`: `cargo install wasm-bindgen-cli --version 0.2.129`.
 
 You may also want:
 
